@@ -1,0 +1,28 @@
+{
+  "categories": {
+    "animals": {
+      "tags": ["animals", "pets", "creatures", "wildlife"],
+      "subjects": ["cat", "dog", "owl", "fish", "dinosaur", "butterfly", "frog", "horse"]
+    },
+    "vehicles": {
+      "tags": ["vehicles", "cars", "trucks", "things that go", "transportation"],
+      "subjects": ["car", "truck", "boat", "airplane", "helicopter", "train", "rocket", "bicycle"]
+    },
+    "nature": {
+      "tags": ["nature", "plants", "outside", "garden", "outdoors"],
+      "subjects": ["tree", "flower", "sun", "moon", "star", "cloud", "mountain", "rainbow"]
+    },
+    "food": {
+      "tags": ["food", "snacks", "fruit", "drinks", "yummy"],
+      "subjects": ["apple", "pizza", "ice cream", "cupcake", "banana", "cookie"]
+    },
+    "buildings": {
+      "tags": ["buildings", "houses", "places", "structures"],
+      "subjects": ["house", "castle", "skyscraper", "barn", "lighthouse"]
+    },
+    "people": {
+      "tags": ["people", "characters", "person"],
+      "subjects": ["robot", "princess", "pirate", "superhero", "astronaut"]
+    }
+  }
+}

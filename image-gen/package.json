@@ -1,0 +1,18 @@
+{
+  "name": "image-gen",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "expand": "node --env-file=.env cli.js expand",
+    "generate": "node --env-file=.env cli.js generate",
+    "review": "node --env-file=.env cli.js review",
+    "review:stop": "kill $(lsof -ti:3456) 2>/dev/null && echo 'Stopped' || echo 'Not running'",
+    "tag": "node --env-file=.env cli.js tag",
+    "publish": "node --env-file=.env cli.js publish",
+    "status": "node --env-file=.env cli.js status"
+  },
+  "dependencies": {
+    "@google/genai": "^1.51.0",
+    "express": "^5.2.1"
+  }
+}

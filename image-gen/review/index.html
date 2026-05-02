@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>rowan-draw | Review</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #1a1a2e; color: #e0e0e0; }
+
+  .header {
+    position: sticky; top: 0; z-index: 10;
+    background: #16213e; padding: 12px 24px;
+    display: flex; align-items: center; gap: 16px;
+    border-bottom: 1px solid #0f3460;
+  }
+  .header h1 { font-size: 18px; font-weight: 600; white-space: nowrap; }
+  .progress-bar { flex: 1; height: 8px; background: #0f3460; border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; background: #4ecca3; transition: width 0.3s; }
+  .stats { font-size: 13px; color: #999; white-space: nowrap; }
+  .stats .picked { color: #4ecca3; }
+  .stats .skipped { color: #f0ad4e; }
+
+  .filters {
+    padding: 8px 24px; background: #16213e; display: flex; gap: 8px; flex-wrap: wrap;
+    border-bottom: 1px solid #0f3460;
+  }
+  .filter-btn {
+    padding: 4px 12px; border-radius: 4px; border: 1px solid #0f3460;
+    background: transparent; color: #999; cursor: pointer; font-size: 13px;
+  }
+  .filter-btn.active { background: #0f3460; color: #e0e0e0; }
+
+  .nav {
+    padding: 12px 24px; display: flex; align-items: center; justify-content: space-between;
+    background: #16213e; border-bottom: 1px solid #0f3460;
+  }
+  .nav button {
+    padding: 8px 20px; border-radius: 6px; border: none;
+    background: #0f3460; color: #e0e0e0; cursor: pointer; font-size: 14px;
+  }
+  .nav button:disabled { opacity: 0.3; cursor: default; }
+  .nav button:hover:not(:disabled) { background: #1a4a8a; }
+  .nav-info { font-size: 14px; color: #999; }
+
+  .variant { padding: 24px; max-width: 1200px; margin: 0 auto; }
+
+  .variant-header { margin-bottom: 20px; }
+  .variant-header h2 { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+  .badges { display: flex; gap: 6px; margin-bottom: 10px; }
+  .badge {
+    display: inline-block; padding: 3px 10px; border-radius: 4px;
+    background: #0f3460; font-size: 12px; color: #aaa; text-transform: capitalize;
+  }
+  .prompt-text {
+    margin-top: 8px; padding: 12px;
+    background: #0d1b2a; border-radius: 6px; font-size: 12px;
+    color: #778; line-height: 1.6; font-family: monospace; word-break: break-word;
+  }
+
+  .instructions {
+    font-size: 13px; color: #667; margin-bottom: 16px;
+  }
+
+  .variant-actions {
+    display: flex; gap: 12px; margin-bottom: 20px; align-items: center;
+  }
+  .action-btn {
+    padding: 8px 18px; border-radius: 6px; border: none;
+    cursor: pointer; font-size: 13px; font-weight: 600;
+  }
+  .action-btn.skip { background: #3a3520; color: #f0ad4e; }
+  .action-btn.skip:hover { background: #4a4530; }
+  .action-btn.regen { background: #1a2a3e; color: #5ba3d9; }
+  .action-btn.regen:hover { background: #243a52; }
+
+  .images {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+  }
+  @media (max-width: 900px) { .images { grid-template-columns: repeat(2, 1fr); } }
+
+  .image-card {
+    background: #16213e; border-radius: 8px; overflow: hidden;
+    border: 3px solid transparent; transition: all 0.2s; cursor: pointer;
+    position: relative;
+  }
+  .image-card:hover { border-color: #334; transform: translateY(-2px); }
+  .image-card.picked { border-color: #4ecca3; box-shadow: 0 0 20px rgba(78, 204, 163, 0.2); }
+  .image-card img {
+    width: 100%; aspect-ratio: 1; object-fit: contain; background: #fff;
+    display: block;
+  }
+  .image-card .pick-label {
+    display: none; position: absolute; top: 8px; right: 8px;
+    background: #4ecca3; color: #000; font-size: 11px; font-weight: 700;
+    padding: 2px 8px; border-radius: 3px;
+  }
+  .image-card.picked .pick-label { display: block; }
+  .image-card .number {
+    position: absolute; top: 8px; left: 8px;
+    background: rgba(0,0,0,0.5); color: #aaa; font-size: 11px;
+    padding: 2px 6px; border-radius: 3px;
+  }
+
+  .regen-row {
+    display: flex; gap: 8px; align-items: center; flex: 1;
+  }
+  .regen-row input {
+    flex: 1; padding: 10px 14px; border-radius: 6px;
+    background: #0d1b2a; border: 1px solid #0f3460; color: #e0e0e0;
+    font-family: inherit; font-size: 14px; min-width: 300px;
+  }
+  .regen-row input::placeholder { color: #556; }
+
+  /* Lightbox */
+  .lightbox {
+    display: none; position: fixed; inset: 0; z-index: 90;
+    background: rgba(0,0,0,0.9); cursor: pointer;
+    justify-content: center; align-items: center;
+  }
+  .lightbox.open { display: flex; }
+  .lightbox img { max-width: 90vw; max-height: 90vh; object-fit: contain; }
+
+  .empty { text-align: center; padding: 80px 24px; color: #556; font-size: 16px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>rowan-draw review</h1>
+  <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+  <div class="stats" id="stats"></div>
+</div>
+
+<div class="filters" id="filters"></div>
+
+<div class="nav">
+  <button id="prev-btn" onclick="navigate(-1)">← Prev</button>
+  <span class="nav-info" id="nav-info"></span>
+  <button id="next-btn" onclick="navigate(1)">Next →</button>
+</div>
+
+<div id="content"></div>
+
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <img id="lightbox-img" src="">
+</div>
+
+
+<script>
+let variants = [];
+let filtered = [];
+let currentIndex = 0;
+let currentFilter = "pending";
+async function load() {
+  const res = await fetch("/api/variants");
+  variants = await res.json();
+  applyFilter();
+  renderFilters();
+  updateStats();
+}
+
+function applyFilter() {
+  if (currentFilter === "all") filtered = variants;
+  else if (currentFilter === "pending") filtered = variants.filter(v => v.status === "pending");
+  else if (currentFilter === "done") filtered = variants.filter(v => v.status === "done");
+  else filtered = variants.filter(v => v.category === currentFilter);
+  if (currentIndex >= filtered.length) currentIndex = Math.max(0, filtered.length - 1);
+  render();
+}
+
+function renderFilters() {
+  const categories = [...new Set(variants.map(v => v.category))].sort();
+  const el = document.getElementById("filters");
+  const filters = [
+    { key: "pending", label: "Pending" },
+    { key: "all", label: "All" },
+    { key: "done", label: "Picked" },
+    ...categories.map(c => ({ key: c, label: c })),
+  ];
+  el.innerHTML = filters.map(f =>
+    `<button class="filter-btn ${f.key === currentFilter ? 'active' : ''}"
+     onclick="setFilter('${f.key}')">${f.label}</button>`
+  ).join("");
+}
+
+function setFilter(f) {
+  currentFilter = f;
+  currentIndex = 0;
+  applyFilter();
+  renderFilters();
+}
+
+function navigate(dir) {
+  currentIndex = Math.max(0, Math.min(filtered.length - 1, currentIndex + dir));
+  render();
+}
+
+function render() {
+  const content = document.getElementById("content");
+  const navInfo = document.getElementById("nav-info");
+  const prevBtn = document.getElementById("prev-btn");
+  const nextBtn = document.getElementById("next-btn");
+
+  if (filtered.length === 0) {
+    content.innerHTML = '<div class="empty">No variants to show.</div>';
+    navInfo.textContent = "";
+    prevBtn.disabled = true;
+    nextBtn.disabled = true;
+    return;
+  }
+
+  prevBtn.disabled = currentIndex === 0;
+  nextBtn.disabled = currentIndex === filtered.length - 1;
+  navInfo.textContent = `${currentIndex + 1} / ${filtered.length}`;
+
+  const v = filtered[currentIndex];
+  const hasPick = v.images.some(i => i.picked);
+
+  content.innerHTML = `
+    <div class="variant">
+      <div class="variant-header">
+        <div class="badges">
+          <span class="badge">${v.category}</span>
+          <span class="badge">${v.subject}</span>
+        </div>
+        <h2>${v.description}</h2>
+        <div class="prompt-text">${v.prompt}</div>
+      </div>
+
+      <div class="instructions">
+        ${hasPick ? 'Image selected. Click a different image to change your pick.' : 'Click the best image to pick it.'}
+        Skip removes this variant entirely. Regenerate creates new images — describe what went wrong and it will be avoided next time.
+      </div>
+
+      <div class="variant-actions">
+        <button class="action-btn skip" onclick="skipVariant('${v.key}')">Skip variant</button>
+        <div class="regen-row">
+          <input type="text" id="regen-feedback" placeholder="e.g. &quot;circle around subject&quot; or &quot;too detailed&quot;">
+          <button class="action-btn regen" onclick="regenerate('${v.key}')">Regenerate</button>
+        </div>
+      </div>
+
+      <div class="images">
+        ${v.images.map((img, i) => `
+          <div class="image-card ${img.picked ? 'picked' : ''}" onclick="pickImage(event, '${v.key}', '${img.path}')">
+            <span class="number">${i + 1}</span>
+            <span class="pick-label">PICKED</span>
+            <img src="${img.url}" loading="lazy">
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
+async function pickImage(event, variantKey, imagePath) {
+  // Right-click or ctrl-click opens lightbox instead
+  if (event.ctrlKey || event.metaKey) {
+    const img = event.currentTarget.querySelector("img");
+    openLightbox(img.src);
+    return;
+  }
+
+  await fetch("/api/pick", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ variantKey, imagePath }),
+  });
+
+  const v = variants.find(x => x.key === variantKey);
+  if (v) {
+    for (const img of v.images) img.picked = (img.path === imagePath);
+    v.status = "done";
+  }
+  render();
+  updateStats();
+}
+
+async function skipVariant(variantKey) {
+  await fetch("/api/skip", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ variantKey }),
+  });
+  variants = variants.filter(v => v.key !== variantKey);
+  applyFilter();
+  updateStats();
+}
+
+async function regenerate(variantKey) {
+  const input = document.getElementById("regen-feedback");
+  const feedback = input ? input.value.trim() : "";
+  await fetch("/api/regenerate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ key: variantKey, feedback: feedback || null }),
+  });
+  variants = variants.filter(v => v.key !== variantKey);
+  applyFilter();
+  updateStats();
+}
+
+async function updateStats() {
+  const res = await fetch("/api/stats");
+  const s = await res.json();
+  document.getElementById("stats").innerHTML =
+    `<span class="picked">${s.picked} picked</span> · <span class="skipped">${s.skipped} skipped</span> · ${s.pending} pending`;
+  const pct = s.total > 0 ? ((s.picked + s.skipped) / s.total * 100) : 0;
+  document.getElementById("progress").style.width = pct + "%";
+}
+
+function openLightbox(url) {
+  document.getElementById("lightbox-img").src = url;
+  document.getElementById("lightbox").classList.add("open");
+}
+
+function closeLightbox() {
+  document.getElementById("lightbox").classList.remove("open");
+}
+
+document.addEventListener("keydown", (e) => {
+  // Don't navigate if typing in the feedback input
+  if (e.target.tagName === "INPUT") return;
+  if (e.key === "ArrowLeft") navigate(-1);
+  if (e.key === "ArrowRight") navigate(1);
+  if (e.key === "Escape") closeLightbox();
+});
+
+load();
+</script>
+</body>
+</html>
