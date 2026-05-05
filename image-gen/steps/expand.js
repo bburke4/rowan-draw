@@ -18,28 +18,57 @@ Rules for variants:
 - NEVER mention colors in descriptions or prompts — all images are black and white line art. \
 Describe subjects by shape and features only (e.g., "school bus" not "yellow school bus")
 
-Rules for image prompts:
-- A child (ages 3-7) needs to be able to draw this. Keep it VERY simple — \
-think 5-15 bold strokes, basic geometric shapes. If you wouldn't describe it as \
-"easy for a kindergartner to draw", it's too complex.
-- Prefer flat views: side view, front view, or top-down. Avoid 3/4 angle or perspective \
-views — they are much harder for kids to draw. Specify the view in every prompt \
-(e.g., "side view", "front view").
-- Reduce subjects to their most essential, recognizable features. \
-A fire truck is a rectangle with wheels, a ladder shape, and a light on top — not a \
-detailed vehicle with windows, hoses, doors, and mechanical parts.
+## Building the image prompt
 
-For each variant, generate a full image generation prompt by combining your variant \
-description with the style template below. The prompt must start with \
-"A single [specific description]" followed by the view angle, then the style instructions.
+A child (ages 3-7) needs to be able to draw the result. Keep it to ~10-15 bold strokes, \
+basic geometric shapes. Use flat views (side, front, top-down) — never 3/4 or perspective.
+
+First, classify the subject:
+
+- **DETAIL-PRONE**: mechanical / manufactured / man-made things — vehicles, machines, \
+buildings, appliances, tools, furniture. Imagen's prior pulls these toward realistic, \
+technical-looking images, so the prompt has to push back hard.
+- **ORGANIC**: animals, plants, food, people, simple natural forms (sun, cloud, star, \
+heart). Imagen already has good cartoon priors for these — a simple prompt works.
+
+### Prompt structure for ORGANIC subjects
+
+Just describe the subject naturally, specify the view, and append the style template. \
+Example:
+"A single sleeping cat curled into a circle, side view, \${STYLE_PROMPT}. \${NEGATIVE_SUFFIX}"
+
+### Prompt structure for DETAIL-PRONE subjects
+
+The prompt MUST do three extra things:
+
+1. **Describe the subject as its component geometric shapes**, not just name it. \
+A fire truck is "a rectangular cab with a long rectangular ladder body behind it, \
+two round wheels, and a small box light on top" — not "a fire truck with a ladder."
+
+2. **Use "strict orthogonal [side / front / top] profile"** instead of plain "side view." \
+This prevents Imagen from drifting into a 3/4 angle.
+
+3. **Name the largest body region as blank canvas, positively.** \
+e.g., "the trailer is completely blank empty canvas with no logos, no text, no panel \
+lines, no seams." Stating where the empty space must go is more effective than \
+just listing what to omit.
+
+Example DETAIL-PRONE prompt:
+"A single semi truck made of a small square cab on the left and a long blank rectangular \
+trailer on the right, two round wheels under the cab and four round wheels under the trailer, \
+strict orthogonal side profile view, the entire trailer body is completely blank empty canvas \
+space with no logos, text, panel lines, or seams, \${STYLE_PROMPT}. \${NEGATIVE_SUFFIX}"
 
 Style template: ${STYLE_PROMPT}
 Negative instructions: ${NEGATIVE_SUFFIX}
 
+## Output format
+
 Return a JSON array of objects with these fields:
 - "slug": URL-safe identifier (lowercase, hyphens, e.g., "sleeping-curled-up-cat")
 - "description": Short human-readable description (e.g., "sleeping cat curled into a circle")
-- "prompt": The full image generation prompt`;
+- "prompt": The full image generation prompt (with the style template and negative \
+instructions written out in full, not as placeholders)`;
 
 export async function runExpand(flags) {
   const catalog = readCatalog();
