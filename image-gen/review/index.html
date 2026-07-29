@@ -1,333 +1,375 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>rowan-draw | Review</title>
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #1a1a2e; color: #e0e0e0; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rowan Draw — Catalog Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --accent: #38bdf8;
+      --accent-hover: #0284c7;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --text: #f8fafc;
+      --text-sub: #94a3b8;
+      --border: #334155;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #090d16;
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .brand h1 { margin: 0; font-size: 1.25rem; font-weight: 700; color: #fff; }
+    .badge {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent);
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .stats {
+      display: flex;
+      gap: 1.5rem;
+      font-size: 0.85rem;
+      color: var(--text-sub);
+    }
+    .stats span strong { color: #fff; }
+    .actions { display: flex; gap: 0.75rem; }
+    button {
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 0.85rem;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary { background: var(--accent); color: #090d16; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: #334155; }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-danger { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid var(--danger); }
+    .btn-danger:hover { background: var(--danger); color: #fff; }
 
-  .header {
-    position: sticky; top: 0; z-index: 10;
-    background: #16213e; padding: 12px 24px;
-    display: flex; align-items: center; gap: 16px;
-    border-bottom: 1px solid #0f3460;
-  }
-  .header h1 { font-size: 18px; font-weight: 600; white-space: nowrap; }
-  .progress-bar { flex: 1; height: 8px; background: #0f3460; border-radius: 4px; overflow: hidden; }
-  .progress-fill { height: 100%; background: #4ecca3; transition: width 0.3s; }
-  .stats { font-size: 13px; color: #999; white-space: nowrap; }
-  .stats .picked { color: #4ecca3; }
-  .stats .skipped { color: #f0ad4e; }
+    main { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+    .filters {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      background: var(--card-bg);
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    .filter-group { display: flex; gap: 1rem; align-items: center; }
+    select, input[type="text"] {
+      font-family: inherit;
+      background: #090d16;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.5rem 0.8rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+    }
+    
+    .variant-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .variant-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .variant-title h2 { margin: 0 0 0.25rem 0; font-size: 1.1rem; }
+    .variant-meta { font-size: 0.8rem; color: var(--text-sub); }
+    .prompt-box {
+      margin-bottom: 1.5rem;
+      background: #090d16;
+      padding: 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .prompt-box textarea {
+      width: 100%;
+      background: transparent;
+      border: none;
+      color: #38bdf8;
+      font-family: monospace;
+      font-size: 0.85rem;
+      resize: vertical;
+      min-height: 50px;
+    }
+    .prompt-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem; }
 
-  .filters {
-    padding: 8px 24px; background: #16213e; display: flex; gap: 8px; flex-wrap: wrap;
-    border-bottom: 1px solid #0f3460;
-  }
-  .filter-btn {
-    padding: 4px 12px; border-radius: 4px; border: 1px solid #0f3460;
-    background: transparent; color: #999; cursor: pointer; font-size: 13px;
-  }
-  .filter-btn.active { background: #0f3460; color: #e0e0e0; }
+    .images-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .image-card {
+      background: #090d16;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transition: transform 0.2s;
+    }
+    .image-card.accepted { border-color: var(--success); box-shadow: 0 0 15px rgba(34, 197, 94, 0.2); }
+    .image-card.rejected { border-color: var(--danger); opacity: 0.5; }
+    .image-card img { width: 100%; aspect-ratio: 1/1; object-fit: contain; background: #fff; }
+    .image-controls { padding: 0.75rem; display: flex; justify-content: space-between; align-items: center; background: #090d16; }
 
-  .nav {
-    padding: 12px 24px; display: flex; align-items: center; justify-content: space-between;
-    background: #16213e; border-bottom: 1px solid #0f3460;
-  }
-  .nav button {
-    padding: 8px 20px; border-radius: 6px; border: none;
-    background: #0f3460; color: #e0e0e0; cursor: pointer; font-size: 14px;
-  }
-  .nav button:disabled { opacity: 0.3; cursor: default; }
-  .nav button:hover:not(:disabled) { background: #1a4a8a; }
-  .nav-info { font-size: 14px; color: #999; }
+    .tag-pills { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.5rem; }
+    .tag-pill { background: #1e293b; color: var(--text-sub); font-size: 0.7rem; padding: 0.1rem 0.4rem; border-radius: 4px; }
 
-  .variant { padding: 24px; max-width: 1200px; margin: 0 auto; }
-
-  .variant-header { margin-bottom: 20px; }
-  .variant-header h2 { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
-  .badges { display: flex; gap: 6px; margin-bottom: 10px; }
-  .badge {
-    display: inline-block; padding: 3px 10px; border-radius: 4px;
-    background: #0f3460; font-size: 12px; color: #aaa; text-transform: capitalize;
-  }
-  .prompt-text {
-    margin-top: 8px; padding: 12px;
-    background: #0d1b2a; border-radius: 6px; font-size: 12px;
-    color: #778; line-height: 1.6; font-family: monospace; word-break: break-word;
-  }
-
-  .instructions {
-    font-size: 13px; color: #667; margin-bottom: 16px;
-  }
-
-  .variant-actions {
-    display: flex; gap: 12px; margin-bottom: 20px; align-items: center;
-  }
-  .action-btn {
-    padding: 8px 18px; border-radius: 6px; border: none;
-    cursor: pointer; font-size: 13px; font-weight: 600;
-  }
-  .action-btn.skip { background: #3a3520; color: #f0ad4e; }
-  .action-btn.skip:hover { background: #4a4530; }
-  .action-btn.regen { background: #1a2a3e; color: #5ba3d9; }
-  .action-btn.regen:hover { background: #243a52; }
-
-  .images {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
-  }
-  @media (max-width: 900px) { .images { grid-template-columns: repeat(2, 1fr); } }
-
-  .image-card {
-    background: #16213e; border-radius: 8px; overflow: hidden;
-    border: 3px solid transparent; transition: all 0.2s; cursor: pointer;
-    position: relative;
-  }
-  .image-card:hover { border-color: #334; transform: translateY(-2px); }
-  .image-card.picked { border-color: #4ecca3; box-shadow: 0 0 20px rgba(78, 204, 163, 0.2); }
-  .image-card img {
-    width: 100%; aspect-ratio: 1; object-fit: contain; background: #fff;
-    display: block;
-  }
-  .image-card .pick-label {
-    display: none; position: absolute; top: 8px; right: 8px;
-    background: #4ecca3; color: #000; font-size: 11px; font-weight: 700;
-    padding: 2px 8px; border-radius: 3px;
-  }
-  .image-card.picked .pick-label { display: block; }
-  .image-card .number {
-    position: absolute; top: 8px; left: 8px;
-    background: rgba(0,0,0,0.5); color: #aaa; font-size: 11px;
-    padding: 2px 6px; border-radius: 3px;
-  }
-
-  .regen-row {
-    display: flex; gap: 8px; align-items: center; flex: 1;
-  }
-  .regen-row input {
-    flex: 1; padding: 10px 14px; border-radius: 6px;
-    background: #0d1b2a; border: 1px solid #0f3460; color: #e0e0e0;
-    font-family: inherit; font-size: 14px; min-width: 300px;
-  }
-  .regen-row input::placeholder { color: #556; }
-
-  /* Lightbox */
-  .lightbox {
-    display: none; position: fixed; inset: 0; z-index: 90;
-    background: rgba(0,0,0,0.9); cursor: pointer;
-    justify-content: center; align-items: center;
-  }
-  .lightbox.open { display: flex; }
-  .lightbox img { max-width: 90vw; max-height: 90vh; object-fit: contain; }
-
-  .empty { text-align: center; padding: 80px 24px; color: #556; font-size: 16px; }
-</style>
+    .retry-bar {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      background: #090d16;
+      padding: 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .retry-bar input { flex: 1; }
+  </style>
 </head>
 <body>
 
-<div class="header">
-  <h1>rowan-draw review</h1>
-  <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
-  <div class="stats" id="stats"></div>
-</div>
+  <header>
+    <div class="brand">
+      <h1>Rowan Draw Catalog Studio</h1>
+      <span class="badge">SQLite + Interactions API</span>
+    </div>
+    <div class="stats" id="stats-bar">
+      Loading stats...
+    </div>
+    <div class="actions">
+      <button class="btn-success" onclick="publishCatalog()">🚀 Publish to Mobile App</button>
+    </div>
+  </header>
 
-<div class="filters" id="filters"></div>
-
-<div class="nav">
-  <button id="prev-btn" onclick="navigate(-1)">← Prev</button>
-  <span class="nav-info" id="nav-info"></span>
-  <button id="next-btn" onclick="navigate(1)">Next →</button>
-</div>
-
-<div id="content"></div>
-
-<div class="lightbox" id="lightbox" onclick="closeLightbox()">
-  <img id="lightbox-img" src="">
-</div>
-
-
-<script>
-let variants = [];
-let filtered = [];
-let currentIndex = 0;
-let currentFilter = "pending";
-async function load() {
-  const res = await fetch("/api/variants");
-  variants = await res.json();
-  applyFilter();
-  renderFilters();
-  updateStats();
-}
-
-function applyFilter() {
-  if (currentFilter === "all") filtered = variants;
-  else if (currentFilter === "pending") filtered = variants.filter(v => v.status === "pending");
-  else if (currentFilter === "done") filtered = variants.filter(v => v.status === "done");
-  else filtered = variants.filter(v => v.category === currentFilter);
-  if (currentIndex >= filtered.length) currentIndex = Math.max(0, filtered.length - 1);
-  render();
-}
-
-function renderFilters() {
-  const categories = [...new Set(variants.map(v => v.category))].sort();
-  const el = document.getElementById("filters");
-  const filters = [
-    { key: "pending", label: "Pending" },
-    { key: "all", label: "All" },
-    { key: "done", label: "Picked" },
-    ...categories.map(c => ({ key: c, label: c })),
-  ];
-  el.innerHTML = filters.map(f =>
-    `<button class="filter-btn ${f.key === currentFilter ? 'active' : ''}"
-     onclick="setFilter('${f.key}')">${f.label}</button>`
-  ).join("");
-}
-
-function setFilter(f) {
-  currentFilter = f;
-  currentIndex = 0;
-  applyFilter();
-  renderFilters();
-}
-
-function navigate(dir) {
-  currentIndex = Math.max(0, Math.min(filtered.length - 1, currentIndex + dir));
-  render();
-}
-
-function render() {
-  const content = document.getElementById("content");
-  const navInfo = document.getElementById("nav-info");
-  const prevBtn = document.getElementById("prev-btn");
-  const nextBtn = document.getElementById("next-btn");
-
-  if (filtered.length === 0) {
-    content.innerHTML = '<div class="empty">No variants to show.</div>';
-    navInfo.textContent = "";
-    prevBtn.disabled = true;
-    nextBtn.disabled = true;
-    return;
-  }
-
-  prevBtn.disabled = currentIndex === 0;
-  nextBtn.disabled = currentIndex === filtered.length - 1;
-  navInfo.textContent = `${currentIndex + 1} / ${filtered.length}`;
-
-  const v = filtered[currentIndex];
-  const hasPick = v.images.some(i => i.picked);
-
-  content.innerHTML = `
-    <div class="variant">
-      <div class="variant-header">
-        <div class="badges">
-          <span class="badge">${v.category}</span>
-          <span class="badge">${v.subject}</span>
-        </div>
-        <h2>${v.description}</h2>
-        <div class="prompt-text">${v.prompt}</div>
+  <main>
+    <div class="filters">
+      <div class="filter-group">
+        <label>Category:</label>
+        <select id="category-filter" onchange="loadVariants()">
+          <option value="">All Categories</option>
+        </select>
+        <label>Status:</label>
+        <select id="status-filter" onchange="loadVariants()">
+          <option value="all">All Variants</option>
+          <option value="pending" selected>Pending Review</option>
+          <option value="accepted">Accepted</option>
+          <option value="skipped">Skipped</option>
+        </select>
       </div>
-
-      <div class="instructions">
-        ${hasPick ? 'Image selected. Click a different image to change your pick.' : 'Click the best image to pick it.'}
-        Skip removes this variant entirely. Regenerate creates new images — describe what went wrong and it will be avoided next time.
-      </div>
-
-      <div class="variant-actions">
-        <button class="action-btn skip" onclick="skipVariant('${v.key}')">Skip variant</button>
-        <div class="regen-row">
-          <input type="text" id="regen-feedback" placeholder="e.g. &quot;circle around subject&quot; or &quot;too detailed&quot;">
-          <button class="action-btn regen" onclick="regenerate('${v.key}')">Regenerate</button>
-        </div>
-      </div>
-
-      <div class="images">
-        ${v.images.map((img, i) => `
-          <div class="image-card ${img.picked ? 'picked' : ''}" onclick="pickImage(event, '${v.key}', '${img.path}')">
-            <span class="number">${i + 1}</span>
-            <span class="pick-label">PICKED</span>
-            <img src="${img.url}" loading="lazy">
-          </div>
-        `).join("")}
+      <div>
+        <button class="btn-secondary" onclick="loadVariants()">🔄 Refresh List</button>
       </div>
     </div>
-  `;
-}
 
-async function pickImage(event, variantKey, imagePath) {
-  // Right-click or ctrl-click opens lightbox instead
-  if (event.ctrlKey || event.metaKey) {
-    const img = event.currentTarget.querySelector("img");
-    openLightbox(img.src);
-    return;
-  }
+    <div id="variants-container">
+      Loading catalog...
+    </div>
+  </main>
 
-  await fetch("/api/pick", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ variantKey, imagePath }),
-  });
+  <script>
+    async function fetchStats() {
+      const res = await fetch('/api/stats');
+      const data = await res.json();
+      document.getElementById('stats-bar').innerHTML = `
+        <span>Categories: <strong>${data.categories}</strong></span>
+        <span>Subjects: <strong>${data.subjects}</strong></span>
+        <span>Variants: <strong>${data.variants}</strong></span>
+        <span>Accepted Images: <strong style="color: var(--success);">${data.acceptedImages}</strong></span>
+        <span>Published: <strong>${data.publishedImages}</strong></span>
+        <span>Total Cost: <strong>$${data.totalSpentUsd}</strong></span>
+      `;
+    }
 
-  const v = variants.find(x => x.key === variantKey);
-  if (v) {
-    for (const img of v.images) img.picked = (img.path === imagePath);
-    v.status = "done";
-  }
-  render();
-  updateStats();
-}
+    async function loadCategories() {
+      const res = await fetch('/api/variants');
+      const data = await res.json();
+      const categories = [...new Set(data.map(v => v.category))];
+      const select = document.getElementById('category-filter');
+      select.innerHTML = '<option value="">All Categories</option>' + categories.map(c => `<option value="${c}">${c}</option>`).join('');
+    }
 
-async function skipVariant(variantKey) {
-  await fetch("/api/skip", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ variantKey }),
-  });
-  variants = variants.filter(v => v.key !== variantKey);
-  applyFilter();
-  updateStats();
-}
+    async function loadVariants() {
+      const cat = document.getElementById('category-filter').value;
+      const status = document.getElementById('status-filter').value;
+      
+      const res = await fetch(`/api/variants?category=${cat}&status=${status}`);
+      const variants = await res.json();
+      
+      const container = document.getElementById('variants-container');
+      if (variants.length === 0) {
+        container.innerHTML = '<div style="text-align: center; padding: 3rem; color: var(--text-sub);">No variants found matching criteria.</div>';
+        return;
+      }
 
-async function regenerate(variantKey) {
-  const input = document.getElementById("regen-feedback");
-  const feedback = input ? input.value.trim() : "";
-  await fetch("/api/regenerate", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ key: variantKey, feedback: feedback || null }),
-  });
-  variants = variants.filter(v => v.key !== variantKey);
-  applyFilter();
-  updateStats();
-}
+      container.innerHTML = variants.map(v => `
+        <div class="variant-card" id="variant-${v.variantId}">
+          <div class="variant-header">
+            <div class="variant-title">
+              <h2>${v.categoryName} / ${v.subjectName} — ${v.description}</h2>
+              <div class="variant-meta">Key: <code>${v.key}</code> | Candidates: ${v.images.length}</div>
+            </div>
+            <div>
+              <button class="btn-danger" onclick="skipVariant(${v.variantId})">Skip Variant</button>
+            </div>
+          </div>
 
-async function updateStats() {
-  const res = await fetch("/api/stats");
-  const s = await res.json();
-  document.getElementById("stats").innerHTML =
-    `<span class="picked">${s.picked} picked</span> · <span class="skipped">${s.skipped} skipped</span> · ${s.pending} pending`;
-  const pct = s.total > 0 ? ((s.picked + s.skipped) / s.total * 100) : 0;
-  document.getElementById("progress").style.width = pct + "%";
-}
+          <div class="prompt-box">
+            <label style="font-size: 0.75rem; color: var(--text-sub); display: block; margin-bottom: 0.3rem;">Image Generation Prompt:</label>
+            <textarea id="prompt-${v.variantId}">${v.prompt}</textarea>
+            <div class="prompt-actions">
+              <button class="btn-secondary" onclick="updatePrompt(${v.variantId})">Save Prompt Override</button>
+            </div>
+          </div>
 
-function openLightbox(url) {
-  document.getElementById("lightbox-img").src = url;
-  document.getElementById("lightbox").classList.add("open");
-}
+          <div class="images-grid">
+            ${v.images.map(img => `
+              <div class="image-card ${img.status}" id="img-card-${img.imageId}">
+                <img src="${img.url}" alt="${v.description}" />
+                <div class="image-controls">
+                  <button class="${img.status === 'accepted' ? 'btn-success' : 'btn-secondary'}" onclick="toggleImageStatus(${img.imageId}, '${img.status === 'accepted' ? 'pending' : 'accepted'}')">
+                    ${img.status === 'accepted' ? '✓ Accepted' : 'Accept Image'}
+                  </button>
+                  <button class="btn-danger" onclick="toggleImageStatus(${img.imageId}, 'rejected')">Reject</button>
+                </div>
+                ${img.difficulty ? `<div style="padding: 0 0.75rem; font-size: 0.75rem; color: var(--text-sub);">Difficulty: Level ${img.difficulty}</div>` : ''}
+                ${img.tags.length ? `<div style="padding: 0.5rem 0.75rem;"><div class="tag-pills">${img.tags.map(t => `<span class="tag-pill">${t}</span>`).join('')}</div></div>` : ''}
+              </div>
+            `).join('')}
+          </div>
 
-function closeLightbox() {
-  document.getElementById("lightbox").classList.remove("open");
-}
+          <div class="retry-bar">
+            <label style="font-size: 0.85rem;">Generate Candidates:</label>
+            <select id="model-${v.variantId}">
+              <option value="gemini-3.1-flash-lite-image" selected>⚡ Nano Banana 2 Lite ($0.034/img)</option>
+              <option value="gemini-3.1-flash-image">🎨 Nano Banana 2 ($0.067/img)</option>
+              <option value="imagen-4.0-fast-generate-001">🚀 Imagen 4 Fast ($0.020/img)</option>
+            </select>
+            <input type="text" id="feedback-${v.variantId}" placeholder="Feedback (e.g. thicker lines, no background)..." value="${v.feedback || ''}">
+            <button class="btn-primary" onclick="regenerateVariant(${v.variantId})">⚡ Generate Candidates Now</button>
+          </div>
+        </div>
+      `).join('');
 
-document.addEventListener("keydown", (e) => {
-  // Don't navigate if typing in the feedback input
-  if (e.target.tagName === "INPUT") return;
-  if (e.key === "ArrowLeft") navigate(-1);
-  if (e.key === "ArrowRight") navigate(1);
-  if (e.key === "Escape") closeLightbox();
-});
+      fetchStats();
+    }
 
-load();
-</script>
+    async function toggleImageStatus(imageId, status) {
+      await fetch('/api/image-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageId, status })
+      });
+      loadVariants();
+    }
+
+    async function updatePrompt(variantId) {
+      const prompt = document.getElementById(`prompt-${variantId}`).value;
+      await fetch('/api/update-prompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ variantId, customPrompt: prompt })
+      });
+      alert('Prompt override saved!');
+    }
+
+    async function regenerateVariant(variantId) {
+      const modelId = document.getElementById(`model-${variantId}`).value;
+      const feedback = document.getElementById(`feedback-${variantId}`).value;
+      
+      const btn = event.target;
+      btn.innerText = 'Generating...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/regenerate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ variantId, modelId, feedback })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          loadVariants();
+        } else {
+          alert('Error generating images: ' + data.error);
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+      } finally {
+        btn.innerText = '⚡ Generate Candidates Now';
+        btn.disabled = false;
+      }
+    }
+
+    async function skipVariant(variantId) {
+      if (!confirm('Are you sure you want to skip/archive this variant?')) return;
+      await fetch('/api/skip-variant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ variantId })
+      });
+      loadVariants();
+    }
+
+    async function publishCatalog() {
+      if (!confirm('Publish all accepted images to library/ and update manifest.json for mobile app?')) return;
+      const res = await fetch('/api/publish', { method: 'POST' });
+      const data = await res.json();
+      if (data.ok) {
+        alert('Catalog published successfully!');
+        loadVariants();
+      } else {
+        alert('Publish error: ' + data.error);
+      }
+    }
+
+    loadCategories();
+    loadVariants();
+  </script>
 </body>
 </html>

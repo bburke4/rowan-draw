@@ -1,141 +1,87 @@
-# Image Generation Pipeline
+# Image Generation Pipeline & Catalog Studio
 
-Generates, reviews, tags, and publishes simple line-art drawing references for the rowan-draw app.
+Generates, reviews, tags, and publishes simple line-art drawing references for the **rowan-draw** app.
+
+Powered by **Node 24 native SQLite (`node:sqlite`)**, Google **Gemini 3.6 Flash**, and the official **Interactions API** with **Nano Banana 2** image models.
 
 ## Setup
 
 ```bash
 cd image-gen
-nvm use          # needs Node 24
+nvm use          # requires Node 24
 npm install
 ```
 
 Create `.env`:
-```
+```env
 GEMINI_API_KEY=your-key-here
 ```
 
-## Quick start
+## Quick Start
 
 ```bash
-npm run status                      # see where things stand
-npm run expand                      # brainstorm variants for all subjects
-npm run generate -- --dry-run       # preview cost before generating
-npm run generate                    # generate images (costs money!)
-npm run review                      # open http://localhost:3456 to accept/reject
-npm run tag                         # AI scores difficulty + search tags
-npm run publish                     # move accepted images to library + manifest
+npm run status                      # View catalog, image, & cost statistics from SQLite
+npm run expand                      # gemini-3.6-flash brainstorms variants into SQLite
+npm run generate -- --dry-run       # Preview generation candidates
+npm run generate                    # Generate candidate images into staging
+npm run review                      # Launch Studio Web UI at http://localhost:3456
+npm run tag                         # gemini-3.6-flash scores difficulty (1-3) & search tags
+npm run publish                     # Copy accepted images to library/ + update manifest.json
 ```
 
-## Pipeline overview
+## Architecture & Data Flow
 
 ```
-catalog.json → expand → generate → review → tag → publish → manifest.json
-  (you edit)    (LLM)   (Imagen)   (you)   (LLM)  (copy)    (app reads)
+                     ┌─────────────────────────┐
+                     │   pipeline/catalog.db   │
+                     │   (SQLite Database)     │
+                     └────────────┬────────────┘
+                                  │
+         ┌────────────────────────┴────────────────────────┐
+         ▼                                                 ▼
+┌───────────────────┐                             ┌───────────────────┐
+│   CLI BATCH MODE  │                             │  STUDIO WEB APP   │
+│ (Bulk Automation) │                             │ (http://localhost:3456)│
+└───────────────────┘                             └───────────────────┘
+ • npm run expand                                  • Multi-Image Accept
+ • npm run generate                                • Edit Prompts per Variant
+ • npm run tag                                     • In-Browser Retry & Model Select
+ • npm run publish                                 • 1-Click Auto-Tag & Publish
 ```
 
-Each step is incremental. Running it again only processes new items — it won't duplicate work or waste API money.
+## Key Workflows & Features
 
-## Step by step
+### 1. Safe Non-Destructive Generation (Experimenting on Published Variants)
+Generating new image candidates for a variant that already has published images will **NEVER overwrite or break published assets**. 
+* New candidate images land safely in staging (`generated/`) and are added to SQLite as `pending`.
+* Your live published assets in `library/` and `manifest.json` stay 100% untouched.
+* You can preview the new candidates in `http://localhost:3456`. If you like one, click **Accept** and **Publish**. If not, reject them—your published asset stays safe.
 
-### 1. Edit the catalog
+### 2. Multi-Image Acceptance
+Unlike legacy flat JSON, the SQLite database supports accepting **multiple drawing candidates per variant**! If 2 or 3 generated variations look great for "sleeping cat", click **Accept** on all of them, giving kids rich options in the mobile app.
 
-`catalog.json` defines what to generate. Add categories, subjects, or search tags:
+### 3. Model Toggling & In-UI Retries
+When generating or retrying candidates in the Web UI (`http://localhost:3456`), you can select which model to use:
+* **⚡ Nano Banana 2 Lite** (`gemini-3.1-flash-lite-image`, $0.034/img) — Default fast & cheap generation.
+* **🎨 Nano Banana 2** (`gemini-3.1-flash-image`, $0.067/img) — High-fidelity generalist model.
+* **🚀 Imagen 4 Fast** (`imagen-4.0-fast-generate-001`, $0.020/img) — Dedicated image diffusion.
 
-```json
-{
-  "categories": {
-    "animals": {
-      "tags": ["animals", "pets", "creatures"],
-      "subjects": ["cat", "dog", "owl"]
-    }
-  }
-}
-```
+### 4. Custom Prompt Overrides
+In `http://localhost:3456`, click any variant's prompt box, type your customized prompt override (e.g. *"thicker outlines, simple side profile"*), and click **Save Prompt Override**. Future generation runs will use your customized prompt.
 
-### 2. Expand variants
+## Database & File Map
 
-```bash
-npm run expand
-```
-
-For each new subject, the LLM brainstorms visually distinct variants (e.g., "sitting cat", "sleeping curled-up cat", "kitten playing"). Results saved to `pipeline/variants.json`.
-
-Flags:
-- `-- --category animals` — only expand new subjects in one category
-- `-- --subject cat` — re-expand a specific subject
-- `-- --force` — re-expand even if variants already exist (e.g., after changing the style prompt)
-
-### 3. Generate images
-
-```bash
-npm run generate -- --dry-run       # ALWAYS preview cost first
-npm run generate                    # generate for real
-npm run generate -- --limit 5       # cap at 5 variants per run
-```
-
-Calls Imagen 4 Fast ($0.02/image, 4 images per variant = $0.08/variant). Images land in `generated/{category}/{subject}/{variant}/`.
-
-Flags:
-- `-- --dry-run` — show what would be generated + estimated cost
-- `-- --limit N` — max variants to generate in one run
-- `-- --category animals` — only generate for one category
-- `-- --subject cat` — only generate for one subject
-- `-- --force` — regenerate even if images exist (skips anything already picked/published)
-
-### 4. Review images
-
-```bash
-npm run review
-```
-
-Opens a web UI at http://localhost:3456. For each variant you see 4 generated images.
-
-- **Click an image** to pick the best one (one pick per variant)
-- **Skip variant** — permanently discard a bad variant idea
-- **Regenerate** — try again with new images. Type what was wrong (e.g., "too detailed") and it gets added to the prompt next time.
-- Arrow keys to navigate between variants
-- Filter by pending/picked/category
-- To stop the server: `npm run review:stop`
-
-### 5. Tag accepted images
-
-```bash
-npm run tag
-```
-
-Sends each picked image to Gemini's vision model which returns:
-- **Difficulty** (1-3): how hard is this for a kid to draw?
-- **Tags**: search terms (e.g., "kitty", "kitten" for a cat image)
-
-### 6. Publish
-
-```bash
-npm run publish
-```
-
-For each picked + tagged image:
-- Assigns a stable ID (e.g., `animals-cat-sitting-cat-001`)
-- Copies the image to `library/{category}/{subject}/`
-- Adds it to `manifest.json`
-
-`manifest.json` is the source of truth the app reads. Once an image is published, it's permanent.
-
-## Files
-
-| File | Committed? | Description |
+| Path | Type | Description |
 |---|---|---|
-| `catalog.json` | Yes | Your input — categories and subjects |
-| `manifest.json` | Yes | Published output — the app reads this |
-| `library/` | Yes | Published image files |
-| `pipeline/*.json` | No | Working state between steps |
-| `generated/` | No | Raw Imagen output (staging area) |
-| `.env` | No | API key |
+| `pipeline/catalog.db` | SQLite DB | **Single Source of Truth** for categories, subjects, variants, generation runs, candidates, decisions, tags, and costs. |
+| `generated/` | Folder | Raw staging area for candidate images undergoing review. |
+| `library/` | Folder | Published production image assets read by the mobile app. |
+| `manifest.json` | JSON | Published metadata bundle exported by `npm run publish` for the React Native app. |
+| `.env` | Env File | Holds `GEMINI_API_KEY`. |
 
-## Cost
+## Cost Reference
 
-Imagen 4 Fast: **$0.02 per image**, 4 images per variant.
-
-Example: 40 subjects x ~8 variants each x 4 images = 1,280 images = **~$25.60**
-
-Always use `--dry-run` before generating to see the cost.
+* **Nano Banana 2 Lite**: **$0.034 per image**
+* **Nano Banana 2**: **$0.067 per image**
+* **Imagen 4 Fast**: **$0.020 per image**
+* **Gemini 3.6 Flash**: Standard text/vision tier for expansion and difficulty tagging.

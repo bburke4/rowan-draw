@@ -1,90 +1,104 @@
 import fs from "node:fs";
 import path from "node:path";
-import { readState, readManifest, writeManifest, readCatalog } from "../lib/state.js";
-import { generateId } from "../lib/ids.js";
+import { getDb } from "../lib/db.js";
 
 const BASE_DIR = path.join(import.meta.dirname, "..");
 const LIBRARY_DIR = path.join(BASE_DIR, "library");
+const MANIFEST_PATH = path.join(BASE_DIR, "manifest.json");
 
 export async function runPublish(flags) {
-  const review = readState("review.json", { decisions: {}, skipped: [], feedback: {} });
-  const tagging = readState("tagging.json", { tagged: {} });
-  const generation = readState("generation.json", { generated: {} });
-  const manifest = readManifest();
-  const catalog = readCatalog();
+  const db = getDb();
   const dryRun = flags["dry-run"];
 
-  // Sync category tags from catalog to manifest
-  for (const [category, { tags }] of Object.entries(catalog.categories)) {
-    manifest.categories[category] = { tags };
-  }
-
-  // Find picked + tagged images not yet published
-  // decisions is { variantKey: imagePath }
-  const alreadyPublished = new Set(
-    Object.values(manifest.images).map((img) => img.sourceFile)
-  );
-
-  const pending = [];
-  for (const [variantKey, imagePath] of Object.entries(review.decisions)) {
-    if (!tagging.tagged[imagePath]) continue;
-    if (alreadyPublished.has(imagePath)) continue;
-    pending.push(imagePath);
-  }
+  const pending = db.prepare(`
+    SELECT 
+      i.id AS image_id,
+      i.public_id,
+      i.file_path,
+      i.difficulty_score,
+      i.tags_json,
+      v.slug AS variant_slug,
+      v.description,
+      COALESCE(v.custom_prompt, v.base_prompt) AS prompt,
+      s.slug AS subject_slug,
+      c.slug AS category_slug
+    FROM images i
+    JOIN variants v ON i.variant_id = v.id
+    JOIN subjects s ON v.subject_id = s.id
+    JOIN categories c ON s.category_id = c.id
+    WHERE i.status = 'accepted' AND i.difficulty_score IS NOT NULL AND i.tags_json IS NOT NULL AND i.is_published = 0
+  `).all();
 
   if (pending.length === 0) {
-    console.log("Nothing to publish — all picked+tagged images are already in the manifest.");
+    console.log("Nothing to publish — all accepted and tagged images in SQLite are already published.");
     return;
   }
 
   if (dryRun) {
-    console.log(`Would publish ${pending.length} images.`);
+    console.log(`Would publish ${pending.length} accepted images from SQLite.`);
     return;
   }
 
-  console.log(`Publishing ${pending.length} images...\n`);
+  console.log(`Publishing ${pending.length} images from SQLite...\n`);
+
+  // Load existing manifest or default
+  let manifest = { version: "1.0", categories: {}, images: {} };
+  if (fs.existsSync(MANIFEST_PATH)) {
+    try {
+      manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, "utf8"));
+    } catch {}
+  }
+
+  // Populate categories in manifest
+  const categories = db.prepare("SELECT slug, name FROM categories").all();
+  for (const cat of categories) {
+    if (!manifest.categories[cat.slug]) {
+      manifest.categories[cat.slug] = { name: cat.name };
+    }
+  }
+
+  const markPublishedStmt = db.prepare(`
+    UPDATE images
+    SET is_published = 1, published_path = ?, published_at = CURRENT_TIMESTAMP
+    WHERE id = ?
+  `);
 
   let published = 0;
-  for (const imagePath of pending) {
-    // Parse the path: generated/{category}/{subject}/{variant-slug}/{filename}
-    const parts = imagePath.split("/");
-    if (parts.length < 5) {
-      console.warn(`  Unexpected path format: ${imagePath}, skipping`);
+  for (const img of pending) {
+    const srcFullPath = path.join(BASE_DIR, img.file_path);
+    if (!fs.existsSync(srcFullPath)) {
+      console.warn(`  Source file not found: ${img.file_path}, skipping`);
       continue;
     }
-    const [, category, subject, variantSlug, filename] = parts;
 
-    const tag = tagging.tagged[imagePath];
-    const id = generateId(category, subject, variantSlug);
-
-    // Copy image to library
-    const ext = path.extname(filename);
-    const libraryRelPath = path.join(category, subject, `${id}${ext}`);
-    const libraryFullPath = path.join(LIBRARY_DIR, libraryRelPath);
+    const ext = path.extname(img.file_path) || ".png";
+    const libraryRelPath = path.join("library", img.category_slug, img.subject_slug, `${img.public_id}${ext}`);
+    const libraryFullPath = path.join(BASE_DIR, libraryRelPath);
 
     fs.mkdirSync(path.dirname(libraryFullPath), { recursive: true });
-    fs.copyFileSync(path.join(BASE_DIR, imagePath), libraryFullPath);
+    fs.copyFileSync(srcFullPath, libraryFullPath);
 
-    // Find the original prompt from generation data
-    const genKey = `${category}/${subject}/${variantSlug}`;
-    const genData = generation.generated[genKey];
-    const prompt = genData?.prompt || "";
+    let tagsArr = [];
+    try {
+      tagsArr = JSON.parse(img.tags_json);
+    } catch {}
 
-    manifest.images[id] = {
-      file: `library/${libraryRelPath}`,
-      category,
-      subject,
-      tags: tag.tags,
-      difficulty: tag.difficulty,
+    manifest.images[img.public_id] = {
+      file: libraryRelPath,
+      category: img.category_slug,
+      subject: img.subject_slug,
+      tags: tagsArr,
+      difficulty: img.difficulty_score,
       added: new Date().toISOString().slice(0, 10),
-      prompt,
-      sourceFile: imagePath,
+      prompt: img.prompt,
+      sourceFile: img.file_path,
     };
 
-    console.log(`  ${id} → library/${libraryRelPath}`);
+    markPublishedStmt.run(libraryRelPath, img.image_id);
+    console.log(`  Published ${img.public_id} → ${libraryRelPath}`);
     published++;
   }
 
-  writeManifest(manifest);
-  console.log(`\nDone. Published ${published} images. Manifest now has ${Object.keys(manifest.images).length} total.`);
+  fs.writeFileSync(MANIFEST_PATH, JSON.stringify(manifest, null, 2));
+  console.log(`\nDone. Published ${published} images. Manifest now has ${Object.keys(manifest.images).length} total images.`);
 }

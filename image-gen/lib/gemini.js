@@ -15,10 +15,10 @@ export function getClient() {
 }
 
 /**
- * Call Gemini with a prompt and get structured JSON back.
+ * Call Gemini with a prompt and get structured JSON back using gemini-3.6-flash.
  * Retries once on parse failure.
  */
-export async function geminiJson(prompt, { model = "gemini-2.5-flash", system } = {}) {
+export async function geminiJson(prompt, { model = "gemini-3.6-flash", system } = {}) {
   const ai = getClient();
   const contents = [{ role: "user", parts: [{ text: prompt }] }];
   const config = {

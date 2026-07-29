@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { getClient } from "../lib/gemini.js";
-import { readState, writeState } from "../lib/state.js";
+import { getDb } from "../lib/db.js";
 
 const BASE_DIR = path.join(import.meta.dirname, "..");
 
@@ -34,48 +34,50 @@ For each image, provide:
 Return JSON with fields: difficulty (number), difficultyReasoning (string), tags (string array)`;
 
 export async function runTag(flags) {
-  const review = readState("review.json", { decisions: {}, skipped: [], feedback: {} });
-  const tagging = readState("tagging.json", { tagged: {} });
+  const db = getDb();
   const dryRun = flags["dry-run"];
 
-  // Find picked but untagged images
-  // decisions is now { variantKey: imagePath } (one pick per variant)
-  const pending = [];
-  for (const [variantKey, imagePath] of Object.entries(review.decisions)) {
-    if (!tagging.tagged[imagePath]) {
-      pending.push(imagePath);
-    }
-  }
+  const pending = db.prepare(`
+    SELECT id, public_id, file_path
+    FROM images
+    WHERE status = 'accepted' AND (difficulty_score IS NULL OR tags_json IS NULL)
+  `).all();
 
   if (pending.length === 0) {
-    console.log("Nothing to tag — all picked images are already tagged.");
+    console.log("Nothing to tag — all accepted images in SQLite are already tagged.");
     return;
   }
 
   if (dryRun) {
-    console.log(`Would tag ${pending.length} accepted images.`);
+    console.log(`Would tag ${pending.length} accepted images using gemini-3.6-flash.`);
     return;
   }
 
-  console.log(`Tagging ${pending.length} images...\n`);
+  console.log(`Tagging ${pending.length} accepted images with gemini-3.6-flash...\n`);
+
+  const updateImgStmt = db.prepare(`
+    UPDATE images
+    SET difficulty_score = ?, difficulty_reasoning = ?, tags_json = ?, tagged_at = CURRENT_TIMESTAMP
+    WHERE id = ?
+  `);
 
   let tagged = 0;
-  for (const imagePath of pending) {
-    const fullPath = path.join(BASE_DIR, imagePath);
+  for (const img of pending) {
+    const fullPath = path.join(BASE_DIR, img.file_path);
 
     if (!fs.existsSync(fullPath)) {
-      console.warn(`  Image not found: ${imagePath}, skipping`);
+      console.warn(`  Image file not found: ${img.file_path}, skipping`);
       continue;
     }
 
-    console.log(`[${tagged + 1}/${pending.length}] ${imagePath}`);
+    console.log(`[${tagged + 1}/${pending.length}] ${img.file_path}`);
 
     const imageData = fs.readFileSync(fullPath);
     const base64 = imageData.toString("base64");
 
     const ai = getClient();
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3.6-flash",
       contents: [
         {
           role: "user",
@@ -93,22 +95,17 @@ export async function runTag(flags) {
 
     try {
       const parsed = JSON.parse(response.text);
-      tagging.tagged[imagePath] = {
-        difficulty: parsed.difficulty,
-        difficultyReasoning: parsed.difficultyReasoning,
-        tags: parsed.tags,
-        taggedAt: new Date().toISOString(),
-      };
+      const tagsJson = JSON.stringify(parsed.tags || []);
+      updateImgStmt.run(parsed.difficulty, parsed.difficultyReasoning, tagsJson, img.id);
+
       console.log(`  Difficulty: ${parsed.difficulty} — ${parsed.difficultyReasoning}`);
-      console.log(`  Tags: ${parsed.tags.join(", ")}`);
+      console.log(`  Tags: ${(parsed.tags || []).join(", ")}`);
+      tagged++;
     } catch {
-      console.warn(`  Failed to parse tagging response, skipping`);
+      console.warn(`  Failed to parse tagging response for ${img.file_path}`);
       continue;
     }
-
-    writeState("tagging.json", tagging);
-    tagged++;
   }
 
-  console.log(`\nDone. Tagged ${tagged} images.`);
+  console.log(`\nDone. Tagged ${tagged} images in SQLite.`);
 }

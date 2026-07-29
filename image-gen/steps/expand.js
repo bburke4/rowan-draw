@@ -1,6 +1,6 @@
+import { getDb } from "../lib/db.js";
 import { geminiJson } from "../lib/gemini.js";
 import { STYLE_PROMPT, NEGATIVE_SUFFIX } from "../lib/prompts.js";
-import { readCatalog, readState, writeState } from "../lib/state.js";
 
 const SYSTEM_PROMPT = `You are helping build a kids drawing reference app. The app shows simple \
 bold-line cartoon drawings that kids look at and try to draw themselves on paper.
@@ -35,7 +35,7 @@ heart). Imagen already has good cartoon priors for these — a simple prompt wor
 
 Just describe the subject naturally, specify the view, and append the style template. \
 Example:
-"A single sleeping cat curled into a circle, side view, \${STYLE_PROMPT}. \${NEGATIVE_SUFFIX}"
+"A single sleeping cat curled into a circle, side view, ${STYLE_PROMPT}. ${NEGATIVE_SUFFIX}"
 
 ### Prompt structure for DETAIL-PRONE subjects
 
@@ -57,7 +57,7 @@ Example DETAIL-PRONE prompt:
 "A single semi truck made of a small square cab on the left and a long blank rectangular \
 trailer on the right, two round wheels under the cab and four round wheels under the trailer, \
 strict orthogonal side profile view, the entire trailer body is completely blank empty canvas \
-space with no logos, text, panel lines, or seams, \${STYLE_PROMPT}. \${NEGATIVE_SUFFIX}"
+space with no logos, text, panel lines, or seams, ${STYLE_PROMPT}. ${NEGATIVE_SUFFIX}"
 
 Style template: ${STYLE_PROMPT}
 Negative instructions: ${NEGATIVE_SUFFIX}
@@ -71,60 +71,75 @@ Return a JSON array of objects with these fields:
 instructions written out in full, not as placeholders)`;
 
 export async function runExpand(flags) {
-  const catalog = readCatalog();
-  const variants = readState("variants.json", { variants: {} });
-
+  const db = getDb();
   const filterCategory = flags.category;
   const filterSubject = flags.subject;
   const force = flags.force || false;
 
+  let query = `
+    SELECT s.id AS subject_id, s.slug AS subject_slug, s.name AS subject_name, c.slug AS category_slug, c.name AS category_name
+    FROM subjects s
+    JOIN categories c ON s.category_id = c.id
+  `;
+  const conditions = [];
+  const params = [];
+
+  if (filterCategory) {
+    conditions.push("c.slug = ?");
+    params.push(filterCategory);
+  }
+  if (filterSubject) {
+    conditions.push("s.slug = ?");
+    params.push(filterSubject);
+  }
+
+  if (conditions.length > 0) {
+    query += " WHERE " + conditions.join(" AND ");
+  }
+
+  const subjectsToExpand = db.prepare(query).all(...params);
+  const checkVariantsStmt = db.prepare("SELECT COUNT(*) AS count FROM variants WHERE subject_id = ? AND status != 'skipped'");
+  const insertVariantStmt = db.prepare(`
+    INSERT INTO variants (subject_id, slug, description, base_prompt, created_at)
+    VALUES (?, ?, ?, ?, ?)
+    ON CONFLICT(subject_id, slug) DO UPDATE SET
+      description = excluded.description,
+      base_prompt = excluded.base_prompt,
+      updated_at = CURRENT_TIMESTAMP
+  `);
+
   let expanded = 0;
   let skipped = 0;
 
-  for (const [category, { subjects }] of Object.entries(catalog.categories)) {
-    if (filterCategory && category !== filterCategory) continue;
+  for (const sub of subjectsToExpand) {
+    const key = `${sub.category_slug}/${sub.subject_slug}`;
 
-    for (const subject of subjects) {
-      if (filterSubject && subject !== filterSubject) continue;
-
-      const key = `${category}/${subject}`;
-
-      if (variants.variants[key] && !force) {
-        skipped++;
-        continue;
-      }
-
-      console.log(`Expanding: ${key}`);
-
-      const prompt = `Generate variants for the subject "${subject}" in the "${category}" category.`;
-
-      const result = await geminiJson(prompt, { system: SYSTEM_PROMPT });
-
-      if (!Array.isArray(result)) {
-        console.error(`  Unexpected response for ${key}, skipping`);
-        continue;
-      }
-
-      variants.variants[key] = result.map((v) => ({
-        slug: v.slug,
-        description: v.description,
-        prompt: v.prompt,
-        addedAt: new Date().toISOString(),
-      }));
-
-      console.log(`  Generated ${result.length} variants`);
-      expanded++;
-
-      writeState("variants.json", variants);
+    const existingCount = checkVariantsStmt.get(sub.subject_id).count;
+    if (existingCount > 0 && !force) {
+      skipped++;
+      continue;
     }
+
+    console.log(`Expanding: ${key} using gemini-3.6-flash...`);
+    const prompt = `Generate variants for the subject "${sub.subject_name}" in the "${sub.category_name}" category.`;
+
+    const result = await geminiJson(prompt, { system: SYSTEM_PROMPT, model: "gemini-3.6-flash" });
+
+    if (!Array.isArray(result)) {
+      console.error(`  Unexpected response for ${key}, skipping`);
+      continue;
+    }
+
+    const now = new Date().toISOString();
+    for (const v of result) {
+      insertVariantStmt.run(sub.subject_id, v.slug, v.description, v.prompt, now);
+    }
+
+    console.log(`  Generated ${result.length} variants in SQLite`);
+    expanded++;
   }
 
   console.log(`\nDone. Expanded ${expanded} subjects, skipped ${skipped} existing.`);
-
-  // Print summary
-  let totalVariants = 0;
-  for (const v of Object.values(variants.variants)) {
-    totalVariants += v.length;
-  }
-  console.log(`Total: ${Object.keys(variants.variants).length} subjects, ${totalVariants} variants`);
+  const totalVariants = db.prepare("SELECT COUNT(*) AS count FROM variants WHERE status != 'skipped'").get().count;
+  console.log(`Total active variants in SQLite: ${totalVariants}`);
 }
