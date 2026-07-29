@@ -20,11 +20,41 @@ export async function runReview() {
   app.use("/images", express.static(path.join(BASE_DIR, "generated")));
   app.use("/library-images", express.static(path.join(BASE_DIR, "library")));
 
+  // API: Billing & Cost Breakdown
+  app.get("/api/billing", (req, res) => {
+    const db = getDb();
+    const apiKey = process.env.GEMINI_API_KEY || "";
+    const maskedKey = apiKey ? `${apiKey.slice(0, 6)}...${apiKey.slice(-4)}` : "Not Configured";
+
+    const rows = db.prepare(`
+      SELECT model_id, COUNT(*) AS run_count, SUM(image_count) AS total_images, SUM(cost) AS total_cost
+      FROM generation_runs
+      GROUP BY model_id
+      ORDER BY total_cost DESC
+    `).all();
+
+    const totalCost = db.prepare("SELECT SUM(cost) AS total FROM generation_runs").get().total || 0;
+
+    res.json({
+      apiKeyConfigured: Boolean(apiKey),
+      maskedKey,
+      totalSpentUsd: Number(totalCost.toFixed(3)),
+      billingUrl: "https://aistudio.google.com/plan",
+      apiKeyUrl: "https://aistudio.google.com/apikey",
+      breakdown: rows.map((r) => ({
+        modelId: r.model_id,
+        runCount: r.run_count,
+        totalImages: r.total_images,
+        totalCostUsd: Number(r.total_cost.toFixed(3)),
+      })),
+    });
+  });
+
   // API: Get Catalog Variants list with clean status filtering
   app.get("/api/variants", (req, res) => {
     const db = getDb();
     const filterCat = req.query.category;
-    const filterStatus = req.query.status || "all"; // 'all', 'pending', 'accepted', 'skipped'
+    const filterStatus = req.query.status || "all";
 
     let query = `
       SELECT 
@@ -139,7 +169,7 @@ export async function runReview() {
     res.json({ ok: true });
   });
 
-  // Regenerate Candidates for a Variant with selected Model & Feedback
+  // Regenerate Candidates for a Variant with Live Quota Error Interception
   app.post("/api/regenerate", async (req, res) => {
     const { variantId, modelId = "gemini-3.1-flash-lite-image", feedback } = req.body;
     if (!variantId) return res.status(400).json({ error: "Missing variantId" });
@@ -231,7 +261,12 @@ export async function runReview() {
       res.json({ ok: true, count: savedImages.length, cost: totalCost });
     } catch (err) {
       console.error("Regenerate Error:", err);
-      res.status(500).json({ error: err.message });
+      const isQuota = err.message?.includes("429") || err.message?.includes("RESOURCE_EXHAUSTED") || err.message?.includes("quota") || err.message?.includes("402") || err.message?.includes("credit");
+      res.status(500).json({
+        error: err.message,
+        isQuotaError: Boolean(isQuota),
+        billingUrl: "https://aistudio.google.com/plan",
+      });
     }
   });
 

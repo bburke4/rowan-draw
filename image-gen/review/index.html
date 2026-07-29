@@ -14,6 +14,7 @@
       --accent: #38bdf8;
       --accent-hover: #0284c7;
       --success: #22c55e;
+      --warning: #f59e0b;
       --danger: #ef4444;
       --text: #f8fafc;
       --text-sub: #94a3b8;
@@ -59,7 +60,7 @@
       color: var(--text-sub);
     }
     .stats span strong { color: #fff; }
-    .actions { display: flex; gap: 0.75rem; }
+    .actions { display: flex; gap: 0.75rem; align-items: center; }
     button {
       font-family: inherit;
       font-weight: 600;
@@ -75,6 +76,7 @@
     .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
     .btn-secondary:hover { background: #334155; }
     .btn-success { background: var(--success); color: #fff; }
+    .btn-warning { background: var(--warning); color: #090d16; }
     .btn-danger { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid var(--danger); }
     .btn-danger:hover { background: var(--danger); color: #fff; }
 
@@ -170,6 +172,32 @@
       border: 1px solid var(--border);
     }
     .retry-bar input { flex: 1; }
+
+    /* Modals */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .modal-box {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 550px;
+      padding: 2rem;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .modal-header h3 { margin: 0; font-size: 1.2rem; }
+    .modal-table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; font-size: 0.85rem; }
+    .modal-table th, .modal-table td { padding: 0.6rem 0.8rem; text-align: left; border-bottom: 1px solid var(--border); }
+    .modal-table th { color: var(--text-sub); }
   </style>
 </head>
 <body>
@@ -183,6 +211,7 @@
       Loading stats...
     </div>
     <div class="actions">
+      <button class="btn-secondary" onclick="openBillingModal()">💳 Billing & API Key</button>
       <button class="btn-success" onclick="publishCatalog()">🚀 Publish to Mobile App</button>
     </div>
   </header>
@@ -212,6 +241,46 @@
     </div>
   </main>
 
+  <!-- Billing Modal -->
+  <div class="modal-overlay" id="billing-modal" style="display: none;">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>💳 Project Billing & API Key Status</h3>
+        <button class="btn-secondary" style="padding: 0.2rem 0.5rem;" onclick="closeBillingModal()">✕</button>
+      </div>
+      <div id="billing-content">
+        Loading billing details...
+      </div>
+      <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">
+        <a id="btn-aistudio-billing" href="https://aistudio.google.com/plan" target="_blank" style="text-decoration: none;">
+          <button class="btn-primary">Google AI Studio Plan & Billing ↗</button>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quota Error Modal -->
+  <div class="modal-overlay" id="quota-modal" style="display: none;">
+    <div class="modal-box" style="border-color: var(--warning);">
+      <div class="modal-header">
+        <h3 style="color: var(--warning);">⚠️ Google Gemini API Quota / Credit Alert</h3>
+        <button class="btn-secondary" style="padding: 0.2rem 0.5rem;" onclick="closeQuotaModal()">✕</button>
+      </div>
+      <p style="font-size: 0.9rem; color: var(--text-sub); line-height: 1.5;" id="quota-error-msg">
+        Your Google Gemini API key has reached its rate limit or depleted its available account credits.
+      </p>
+      <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid var(--warning); padding: 1rem; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1.5rem;">
+        To fix this, check your account plan, top up credits, or check billing status in Google AI Studio.
+      </div>
+      <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+        <button class="btn-secondary" onclick="closeQuotaModal()">Dismiss</button>
+        <a href="https://aistudio.google.com/plan" target="_blank" style="text-decoration: none;">
+          <button class="btn-warning">Top Up Credits on Google AI Studio ↗</button>
+        </a>
+      </div>
+    </div>
+  </div>
+
   <script>
     async function fetchStats() {
       const res = await fetch('/api/stats');
@@ -222,9 +291,45 @@
         <span>Variants: <strong>${data.variants}</strong></span>
         <span>Accepted Images: <strong style="color: var(--success);">${data.acceptedImages}</strong></span>
         <span>Published: <strong>${data.publishedImages}</strong></span>
-        <span>Total Cost: <strong>$${data.totalSpentUsd}</strong></span>
+        <span>Total Project Spent: <strong style="color: var(--accent);">$${data.totalSpentUsd}</strong></span>
       `;
     }
+
+    async function openBillingModal() {
+      document.getElementById('billing-modal').style.display = 'flex';
+      const res = await fetch('/api/billing');
+      const data = await res.json();
+      
+      document.getElementById('billing-content').innerHTML = `
+        <div style="margin-bottom: 1rem; font-size: 0.85rem; color: var(--text-sub);">
+          API Key: <strong style="color: #fff;">${data.maskedKey}</strong> | Status: <strong style="color: var(--success);">Active</strong>
+        </div>
+        <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--accent);">
+          Total Project Spent: $${data.totalSpentUsd} USD
+        </div>
+        <table class="modal-table">
+          <thead>
+            <tr><th>Model</th><th>Runs</th><th>Images</th><th>Cost (USD)</th></tr>
+          </thead>
+          <tbody>
+            ${data.breakdown.map(b => `
+              <tr>
+                <td><code>${b.modelId}</code></td>
+                <td>${b.runCount}</td>
+                <td>${b.totalImages}</td>
+                <td>$${b.totalCostUsd}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        <p style="font-size: 0.75rem; color: var(--text-sub);">
+          * Costs are precisely calculated based on official model pricing logged in SQLite per generation run.
+        </p>
+      `;
+    }
+
+    function closeBillingModal() { document.getElementById('billing-modal').style.display = 'none'; }
+    function closeQuotaModal() { document.getElementById('quota-modal').style.display = 'none'; }
 
     async function loadCategories() {
       const res = await fetch('/api/variants');
@@ -336,7 +441,12 @@
         if (data.ok) {
           loadVariants();
         } else {
-          alert('Error generating images: ' + data.error);
+          if (data.isQuotaError) {
+            document.getElementById('quota-error-msg').innerText = data.error;
+            document.getElementById('quota-modal').style.display = 'flex';
+          } else {
+            alert('Error generating images: ' + data.error);
+          }
         }
       } catch (err) {
         alert('Error: ' + err.message);
