@@ -20,7 +20,7 @@ export async function runReview() {
   app.use("/images", express.static(path.join(BASE_DIR, "generated")));
   app.use("/library-images", express.static(path.join(BASE_DIR, "library")));
 
-  // API: Get Full Catalog & Variants list
+  // API: Get Catalog Variants list with clean status filtering
   app.get("/api/variants", (req, res) => {
     const db = getDb();
     const filterCat = req.query.category;
@@ -50,10 +50,13 @@ export async function runReview() {
       conditions.push("c.slug = ?");
       params.push(filterCat);
     }
-    if (filterStatus === "active") {
-      conditions.push("v.status = 'active'");
-    } else if (filterStatus === "skipped") {
+
+    if (filterStatus === "skipped") {
       conditions.push("v.status = 'skipped'");
+    } else if (filterStatus === "accepted") {
+      conditions.push("v.status = 'active' AND EXISTS (SELECT 1 FROM images i WHERE i.variant_id = v.id AND i.status = 'accepted')");
+    } else if (filterStatus === "pending") {
+      conditions.push("v.status = 'active' AND EXISTS (SELECT 1 FROM images i WHERE i.variant_id = v.id AND i.status = 'pending') AND NOT EXISTS (SELECT 1 FROM images i WHERE i.variant_id = v.id AND i.status = 'accepted')");
     }
 
     if (conditions.length > 0) {
@@ -116,7 +119,7 @@ export async function runReview() {
 
   // Toggle Acceptance on individual Image
   app.post("/api/image-status", (req, res) => {
-    const { imageId, status } = req.body; // status: 'accepted', 'pending', 'rejected'
+    const { imageId, status } = req.body;
     if (!imageId || !status) {
       return res.status(400).json({ error: "Missing imageId or status" });
     }
