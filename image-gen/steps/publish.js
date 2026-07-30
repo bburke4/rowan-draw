@@ -15,10 +15,11 @@ export async function runPublish(flags) {
       i.id AS image_id,
       i.public_id,
       i.file_path,
+      i.image_description,
       i.difficulty_score,
       i.tags_json,
       v.slug AS variant_slug,
-      v.description,
+      v.description AS variant_description,
       COALESCE(v.custom_prompt, v.base_prompt) AS prompt,
       s.slug AS subject_slug,
       c.slug AS category_slug
@@ -41,7 +42,6 @@ export async function runPublish(flags) {
 
   console.log(`Publishing ${pending.length} images from SQLite...\n`);
 
-  // Load existing manifest or default
   let manifest = { version: "1.0", categories: {}, images: {} };
   if (fs.existsSync(MANIFEST_PATH)) {
     try {
@@ -49,7 +49,6 @@ export async function runPublish(flags) {
     } catch {}
   }
 
-  // Populate categories in manifest
   const categories = db.prepare("SELECT slug, name FROM categories").all();
   for (const cat of categories) {
     if (!manifest.categories[cat.slug]) {
@@ -87,6 +86,8 @@ export async function runPublish(flags) {
       file: libraryRelPath,
       category: img.category_slug,
       subject: img.subject_slug,
+      variant: img.variant_slug,
+      description: img.image_description || img.variant_description,
       tags: tagsArr,
       difficulty: img.difficulty_score,
       added: new Date().toISOString().slice(0, 10),

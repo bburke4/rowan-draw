@@ -376,6 +376,7 @@
             ${v.images.map(img => `
               <div class="image-card ${img.status}" id="img-card-${img.imageId}">
                 <img src="${img.url}" alt="${v.description}" />
+                ${img.imageDescription ? `<div style="padding: 0.5rem 0.75rem 0 0.75rem; font-size: 0.8rem; color: #38bdf8; font-style: italic;">"${img.imageDescription}"</div>` : ''}
                 <div class="image-controls">
                   <button class="${img.status === 'accepted' ? 'btn-success' : 'btn-secondary'}" onclick="toggleImageStatus(${img.imageId}, '${img.status === 'accepted' ? 'pending' : 'accepted'}')">
                     ${img.status === 'accepted' ? '✓ Accepted' : 'Accept Image'}

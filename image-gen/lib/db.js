@@ -14,8 +14,6 @@ export function getDb() {
     }
 
     _db = new DatabaseSync(DB_PATH);
-
-    // Enable foreign keys and WAL mode for reliability
     _db.exec("PRAGMA foreign_keys = ON;");
 
     // Initialize Schema
@@ -74,6 +72,7 @@ export function getDb() {
         file_path TEXT NOT NULL,
         published_path TEXT,
         status TEXT DEFAULT 'pending',
+        image_description TEXT,
         difficulty_score INTEGER,
         difficulty_reasoning TEXT,
         tags_json TEXT,
@@ -88,6 +87,11 @@ export function getDb() {
       CREATE INDEX IF NOT EXISTS idx_images_variant ON images(variant_id);
       CREATE INDEX IF NOT EXISTS idx_images_status ON images(status);
     `);
+
+    // Ensure image_description column exists if database was created prior
+    try {
+      _db.exec("ALTER TABLE images ADD COLUMN image_description TEXT;");
+    } catch {}
   }
   return _db;
 }

@@ -96,7 +96,7 @@ export async function runReview() {
 
     const variants = db.prepare(query).all(...params);
     const getImagesStmt = db.prepare(`
-      SELECT id AS image_id, public_id, file_path, published_path, status, difficulty_score, tags_json, is_published
+      SELECT id AS image_id, public_id, file_path, published_path, status, image_description, difficulty_score, tags_json, is_published
       FROM images
       WHERE variant_id = ?
       ORDER BY id DESC
@@ -115,6 +115,7 @@ export async function runReview() {
           path: img.file_path,
           url: "/images/" + img.file_path.replace(/^generated\//, ""),
           status: img.status,
+          imageDescription: img.image_description,
           difficulty: img.difficulty_score,
           tags,
           isPublished: Boolean(img.is_published),

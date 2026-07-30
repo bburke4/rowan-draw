@@ -10,28 +10,18 @@ Kids (ages 3-7) will look at these drawings and try to recreate them on paper.
 
 For each image, provide:
 
-1. A difficulty score (1, 2, or 3) based on how hard it would be for a young child to draw:
+1. A concise 5-10 word visual description of what is actually drawn in this specific image (e.g. "Sitting cat facing forward with big round eyes", "Side profile racecar with oversized rear wheels"). Keep it short and factual.
 
-   Scoring factors:
-   - Stroke count: few shapes (5-10) = easier, many shapes (20+) = harder
-   - Line type: straight lines and basic curves = easier, complex curves/S-shapes/spirals = harder
-   - Precision required: shapes don't need to connect precisely = easier, features must be placed accurately (e.g., facial features) = harder
-   - Symmetry: asymmetric or forgiving = easier, must look balanced (butterfly, face) = harder
-   - Fine detail: no internal detail = easier, small features inside larger shapes = harder
-
+2. A difficulty score (1, 2, or 3) based on how hard it would be for a young child to draw:
    Level 1: "I can do that!" — a few big shapes, straight lines, very forgiving
    Level 2: Recognizable subject, needs some care with placement and curves
    Level 3: Challenging — many parts, curves, detail work, things need to line up
 
-2. Brief reasoning for the difficulty score.
+3. Brief reasoning for the difficulty score.
 
-3. Search tags — alternate words someone might search to find this image. Include:
-   - The subject name itself
-   - Child-friendly synonyms (e.g., "kitty" for cat, "dino" for dinosaur)
-   - Descriptive terms a parent or child might type
-   - Keep it to 3-8 tags, practical not exhaustive
+4. Search tags — 3 to 8 child-friendly search terms (e.g. "cat", "kitty", "pet").
 
-Return JSON with fields: difficulty (number), difficultyReasoning (string), tags (string array)`;
+Return JSON with fields: imageDescription (string 5-10 words), difficulty (number 1-3), difficultyReasoning (string), tags (string array)`;
 
 export async function runTag(flags) {
   const db = getDb();
@@ -40,24 +30,24 @@ export async function runTag(flags) {
   const pending = db.prepare(`
     SELECT id, public_id, file_path
     FROM images
-    WHERE status = 'accepted' AND (difficulty_score IS NULL OR tags_json IS NULL)
+    WHERE status = 'accepted' AND (difficulty_score IS NULL OR tags_json IS NULL OR image_description IS NULL)
   `).all();
 
   if (pending.length === 0) {
-    console.log("Nothing to tag — all accepted images in SQLite are already tagged.");
+    console.log("Nothing to tag — all accepted images in SQLite are already described and tagged.");
     return;
   }
 
   if (dryRun) {
-    console.log(`Would tag ${pending.length} accepted images using gemini-3.6-flash.`);
+    console.log(`Would describe and tag ${pending.length} accepted images using gemini-3.6-flash.`);
     return;
   }
 
-  console.log(`Tagging ${pending.length} accepted images with gemini-3.6-flash...\n`);
+  console.log(`Describing and tagging ${pending.length} accepted images with gemini-3.6-flash...\n`);
 
   const updateImgStmt = db.prepare(`
     UPDATE images
-    SET difficulty_score = ?, difficulty_reasoning = ?, tags_json = ?, tagged_at = CURRENT_TIMESTAMP
+    SET image_description = ?, difficulty_score = ?, difficulty_reasoning = ?, tags_json = ?, tagged_at = CURRENT_TIMESTAMP
     WHERE id = ?
   `);
 
@@ -83,7 +73,7 @@ export async function runTag(flags) {
           role: "user",
           parts: [
             { inlineData: { mimeType: "image/png", data: base64 } },
-            { text: "Evaluate this drawing and return difficulty score, reasoning, and search tags." },
+            { text: "Evaluate this drawing and return imageDescription (5-10 words), difficulty score, reasoning, and search tags." },
           ],
         },
       ],
@@ -96,9 +86,10 @@ export async function runTag(flags) {
     try {
       const parsed = JSON.parse(response.text);
       const tagsJson = JSON.stringify(parsed.tags || []);
-      updateImgStmt.run(parsed.difficulty, parsed.difficultyReasoning, tagsJson, img.id);
+      updateImgStmt.run(parsed.imageDescription || null, parsed.difficulty, parsed.difficultyReasoning, tagsJson, img.id);
 
-      console.log(`  Difficulty: ${parsed.difficulty} — ${parsed.difficultyReasoning}`);
+      console.log(`  Description: ${parsed.imageDescription}`);
+      console.log(`  Difficulty: Level ${parsed.difficulty} — ${parsed.difficultyReasoning}`);
       console.log(`  Tags: ${(parsed.tags || []).join(", ")}`);
       tagged++;
     } catch {
@@ -107,5 +98,5 @@ export async function runTag(flags) {
     }
   }
 
-  console.log(`\nDone. Tagged ${tagged} images in SQLite.`);
+  console.log(`\nDone. Described & tagged ${tagged} images in SQLite.`);
 }
