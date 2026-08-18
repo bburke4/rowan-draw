@@ -9,10 +9,14 @@
 **Principles:** Offline-first, ad-free, no open browser, no distractions. The app gets out of the way so the kid can draw.
 
 ## 2. Technical Stack & Architecture
-* **Frontend:** React Native and TypeScript for rapid cross-platform MVP development, leveraging existing engineering expertise.
-* **Backend:** 100% serverless/backend-free to eliminate costs and ensure immediate loading.
-* **Data Storage:** Local state persistence (e.g., MMKV or AsyncStorage) for user favorites and settings.
-* **Asset Management:** A "Starter Pack" of images bundled into the local app binary, with the remainder fetched via a static CDN in the background to manage initial download size.
+* **Frontend:** Vite + React 19 + TypeScript + Tailwind CSS v4 for a fast, responsive, web-first PWA.
+* **Mobile Packaging:** Capacitor to package the static web build into a 100% offline Android App Bundle (`.aab`) for the Google Play Store ($25 lifetime developer account).
+* **Backend:** 100% serverless/static to eliminate hosting costs ($0 on Vercel) and guarantee 0ms instant loading.
+* **Asset Management:** Single production target in `web/public/`. All published images and `manifest.json` are bundled directly into the web static output and mobile binary for 100% offline reliability.
+* **UX Architecture (Pattern A)**:
+  - **Category Landing Grid**: Large, colorful touch cards (*Animals 🐱, Vehicles 🚗, Nature 🌻, Food 🍕, Buildings 🏰, People 🤖*).
+  - **Active Search Layout**: Search results split into **Matching Categories (top row)** + **Matching Drawings grid (underneath)**.
+  - **Dedicated Viewer Screen**: Pure white canvas with 3x3 Grid Overlay toggle, Mirroring, 1-Click Print, and Toddler Lock.
 
 ## 3. AI Asset Generation Pipeline (Local)
 
