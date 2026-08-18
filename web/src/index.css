@@ -1,0 +1,65 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-outfit: 'Outfit', sans-serif;
+  --font-sans: 'Inter', sans-serif;
+
+  --color-brand-dark: #0b0f17;
+  --color-brand-surface: #161f2e;
+  --color-brand-border: #243044;
+  --color-brand-amber: #f59e0b;
+  --color-brand-emerald: #10b981;
+  --color-brand-coral: #ef4444;
+  --color-brand-sky: #0284c7;
+}
+
+body {
+  background-color: var(--color-brand-dark);
+  color: #f1f5f9;
+  font-family: var(--font-sans);
+  min-height: 100vh;
+}
+
+/* Print Styles for 1-Click Physical Drawing Sheet Printing */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-only-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+  }
+  .print-only-canvas img {
+    max-width: 90vw;
+    max-height: 90vh;
+    object-fit: contain;
+  }
+}
+
+/* Custom smooth scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0b0f17;
+}
+::-webkit-scrollbar-thumb {
+  background: #243044;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}

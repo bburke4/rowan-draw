@@ -3,8 +3,11 @@ import path from "node:path";
 import { getDb } from "../lib/db.js";
 
 const BASE_DIR = path.join(import.meta.dirname, "..");
-const LIBRARY_DIR = path.join(BASE_DIR, "library");
-const MANIFEST_PATH = path.join(BASE_DIR, "manifest.json");
+const WEB_DIR = path.join(BASE_DIR, "..", "web");
+const WEB_PUBLIC_DIR = path.join(WEB_DIR, "public");
+const WEB_MANIFEST_PATH = path.join(WEB_PUBLIC_DIR, "manifest.json");
+const BASE_MANIFEST_PATH = path.join(BASE_DIR, "manifest.json");
+const MANIFEST_PATH = fs.existsSync(WEB_PUBLIC_DIR) ? WEB_MANIFEST_PATH : BASE_MANIFEST_PATH;
 
 export async function runPublish(flags) {
   const db = getDb();
@@ -72,10 +75,11 @@ export async function runPublish(flags) {
 
     const ext = path.extname(img.file_path) || ".png";
     const libraryRelPath = path.join("library", img.category_slug, img.subject_slug, `${img.public_id}${ext}`);
-    const libraryFullPath = path.join(BASE_DIR, libraryRelPath);
+    const webLibraryFullPath = path.join(WEB_PUBLIC_DIR, libraryRelPath);
 
-    fs.mkdirSync(path.dirname(libraryFullPath), { recursive: true });
-    fs.copyFileSync(srcFullPath, libraryFullPath);
+    // Single production target: Copy from raw staging (generated/) directly into web/public/library/
+    fs.mkdirSync(path.dirname(webLibraryFullPath), { recursive: true });
+    fs.copyFileSync(srcFullPath, webLibraryFullPath);
 
     let tagsArr = [];
     try {
@@ -96,10 +100,18 @@ export async function runPublish(flags) {
     };
 
     markPublishedStmt.run(libraryRelPath, img.image_id);
-    console.log(`  Published ${img.public_id} → ${libraryRelPath}`);
+    console.log(`  Published ${img.public_id} → ${webLibraryFullPath}`);
     published++;
   }
 
+  // Write manifest.json to production target (web/public/manifest.json)
   fs.writeFileSync(MANIFEST_PATH, JSON.stringify(manifest, null, 2));
+
+  // Also keep a copy at image-gen/manifest.json for convenience if BASE_DIR manifest is separate
+  const baseManifestPath = path.join(BASE_DIR, "manifest.json");
+  if (baseManifestPath !== MANIFEST_PATH) {
+    fs.writeFileSync(baseManifestPath, JSON.stringify(manifest, null, 2));
+  }
+
   console.log(`\nDone. Published ${published} images. Manifest now has ${Object.keys(manifest.images).length} total images.`);
 }

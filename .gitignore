@@ -1,3 +1,13 @@
+# Dependencies & Environment
 node_modules/
 .env
+*.env.local
+
+# OS Files & Logs
 .DS_Store
+*.log
+npm-debug.log*
+
+# Pipeline Staging (unaccepted / raw candidates)
+image-gen/pipeline/staging/
+image-gen/pipeline/scratch/
