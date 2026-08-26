@@ -11,3 +11,8 @@ npm-debug.log*
 # Pipeline Staging (unaccepted / raw candidates)
 image-gen/pipeline/staging/
 image-gen/pipeline/scratch/
+image-gen/generated/
+!image-gen/generated/.gitkeep
+image-gen/test_*.png
+test_*.png
+
