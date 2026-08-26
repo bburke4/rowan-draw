@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rowan Draw — Catalog Studio</title>
+  <title>Rowan Draw — Catalog Studio & Playground</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -31,7 +31,7 @@
     header {
       background: #090d16;
       border-bottom: 1px solid var(--border);
-      padding: 1rem 2rem;
+      padding: 0.8rem 2rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -42,21 +42,40 @@
     .brand {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: 1rem;
     }
-    .brand h1 { margin: 0; font-size: 1.25rem; font-weight: 700; color: #fff; }
-    .badge {
-      background: rgba(56, 189, 248, 0.15);
-      color: var(--accent);
-      padding: 0.2rem 0.6rem;
-      border-radius: 999px;
-      font-size: 0.75rem;
+    .brand h1 { margin: 0; font-size: 1.2rem; font-weight: 700; color: #fff; }
+    
+    .nav-tabs {
+      display: flex;
+      background: #1e293b;
+      padding: 0.25rem;
+      border-radius: 10px;
+      gap: 0.25rem;
+      border: 1px solid var(--border);
+    }
+    .tab-btn {
+      background: transparent;
+      color: var(--text-sub);
+      border: none;
+      padding: 0.45rem 1rem;
+      border-radius: 7px;
+      font-size: 0.85rem;
       font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
     }
+    .tab-btn:hover { color: #fff; }
+    .tab-btn.active {
+      background: var(--accent);
+      color: #090d16;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
     .stats {
       display: flex;
-      gap: 1.5rem;
-      font-size: 0.85rem;
+      gap: 1.2rem;
+      font-size: 0.82rem;
       color: var(--text-sub);
     }
     .stats span strong { color: #fff; }
@@ -70,6 +89,10 @@
       border: none;
       cursor: pointer;
       transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      justify-content: center;
     }
     .btn-primary { background: var(--accent); color: #090d16; }
     .btn-primary:hover { background: var(--accent-hover); }
@@ -79,20 +102,22 @@
     .btn-warning { background: var(--warning); color: #090d16; }
     .btn-danger { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid var(--danger); }
     .btn-danger:hover { background: var(--danger); color: #fff; }
+    .btn-sm { padding: 0.3rem 0.6rem; font-size: 0.75rem; border-radius: 6px; }
 
-    main { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+    main { max-width: 1440px; margin: 0 auto; padding: 1.5rem 2rem 3rem 2rem; }
+    
     .filters {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 2rem;
+      margin-bottom: 1.5rem;
       background: var(--card-bg);
-      padding: 1rem 1.5rem;
+      padding: 0.9rem 1.3rem;
       border-radius: 12px;
       border: 1px solid var(--border);
     }
     .filter-group { display: flex; gap: 1rem; align-items: center; }
-    select, input[type="text"] {
+    select, input[type="text"], textarea {
       font-family: inherit;
       background: #090d16;
       border: 1px solid var(--border);
@@ -101,23 +126,69 @@
       border-radius: 6px;
       font-size: 0.85rem;
     }
+    select:focus, input[type="text"]:focus, textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
     
     .variant-card {
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 16px;
       padding: 1.5rem;
-      margin-bottom: 2rem;
+      margin-bottom: 1.5rem;
+      transition: all 0.2s ease-in-out;
+    }
+    .variant-card.collapsed {
+      padding: 1rem 1.25rem;
+      background: #141c2e;
+    }
+    .variant-card.collapsed .variant-header {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+    .variant-card.collapsed .variant-body {
+      display: none;
     }
     .variant-header {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
+      align-items: center;
       margin-bottom: 1rem;
       padding-bottom: 1rem;
       border-bottom: 1px solid var(--border);
     }
-    .variant-title h2 { margin: 0 0 0.25rem 0; font-size: 1.1rem; }
+    .variant-title {
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .variant-title:hover h2 {
+      color: var(--accent);
+    }
+    .collapse-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-sub);
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .collapse-btn:hover {
+      background: #334155;
+      color: #fff;
+    }
+    .variant-title h2 { margin: 0 0 0.25rem 0; font-size: 1.1rem; transition: color 0.15s; }
     .variant-meta { font-size: 0.8rem; color: var(--text-sub); }
     .prompt-box {
       margin-bottom: 1.5rem;
@@ -132,7 +203,7 @@
       border: none;
       color: #38bdf8;
       font-family: monospace;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       resize: vertical;
       min-height: 50px;
     }
@@ -152,12 +223,56 @@
       display: flex;
       flex-direction: column;
       position: relative;
-      transition: transform 0.2s;
+      transition: all 0.25s ease-out;
     }
     .image-card.accepted { border-color: var(--success); box-shadow: 0 0 15px rgba(34, 197, 94, 0.2); }
-    .image-card.rejected { border-color: var(--danger); opacity: 0.5; }
+    .image-card.rejected { display: none !important; }
+    .image-card.fade-out { opacity: 0; transform: scale(0.85); pointer-events: none; }
     .image-card img { width: 100%; aspect-ratio: 1/1; object-fit: contain; background: #fff; }
     .image-controls { padding: 0.75rem; display: flex; justify-content: space-between; align-items: center; background: #090d16; }
+
+    .image-header-bar {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      right: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none;
+    }
+    .model-badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid var(--border);
+      color: #fff;
+      backdrop-filter: blur(4px);
+      pointer-events: auto;
+    }
+    .model-badge.lite { color: #38bdf8; border-color: rgba(56, 189, 248, 0.4); }
+    .model-badge.standard { color: #a855f7; border-color: rgba(168, 85, 247, 0.4); }
+    .model-badge.imagen { color: #f59e0b; border-color: rgba(245, 158, 11, 0.4); }
+    .model-badge.pro { color: #ec4899; border-color: rgba(236, 72, 153, 0.4); }
+
+    .info-btn {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid var(--border);
+      color: var(--text-sub);
+      border-radius: 999px;
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      font-size: 0.75rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: auto;
+    }
+    .info-btn:hover { color: #fff; background: var(--card-bg); }
 
     .tag-pills { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.5rem; }
     .tag-pill { background: #1e293b; color: var(--text-sub); font-size: 0.7rem; padding: 0.1rem 0.4rem; border-radius: 4px; }
@@ -167,11 +282,85 @@
       gap: 0.75rem;
       align-items: center;
       background: #090d16;
-      padding: 1rem;
+      padding: 0.9rem;
       border-radius: 8px;
       border: 1px solid var(--border);
     }
     .retry-bar input { flex: 1; }
+
+    /* Playground Styles */
+    .playground-container {
+      display: grid;
+      grid-template-columns: 460px 1fr;
+      gap: 2rem;
+      align-items: start;
+    }
+    @media (max-width: 1024px) {
+      .playground-container { grid-template-columns: 1fr; }
+    }
+    .playground-sidebar {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+    }
+    .field-group {
+      margin-bottom: 1.2rem;
+    }
+    .field-group label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.4rem;
+    }
+    .field-group .help-text {
+      font-size: 0.75rem;
+      color: var(--text-sub);
+      margin-top: 0.3rem;
+    }
+    .playground-results {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      min-height: 400px;
+    }
+    .results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.2rem;
+      padding-bottom: 0.8rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .sandbox-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+    .sandbox-card {
+      background: #090d16;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .sandbox-card img { width: 100%; aspect-ratio: 1/1; object-fit: contain; background: #fff; }
+    .sandbox-card-body {
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      flex: 1;
+    }
+    .sandbox-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-sub);
+    }
 
     /* Modals */
     .modal-overlay {
@@ -189,7 +378,7 @@
       border: 1px solid var(--border);
       border-radius: 16px;
       width: 100%;
-      max-width: 550px;
+      max-width: 580px;
       padding: 2rem;
       box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
     }
@@ -204,75 +393,239 @@
 
   <header>
     <div class="brand">
-      <h1>Rowan Draw Catalog Studio</h1>
-      <span class="badge">SQLite + Interactions API</span>
+      <h1>Rowan Draw Studio</h1>
+      <div class="nav-tabs">
+        <button class="tab-btn active" id="tab-btn-review" onclick="switchTab('review')">📚 Catalog Review</button>
+        <button class="tab-btn" id="tab-btn-playground" onclick="switchTab('playground')">🧪 Prompt Playground</button>
+      </div>
     </div>
     <div class="stats" id="stats-bar">
       Loading stats...
     </div>
     <div class="actions">
-      <button class="btn-secondary" onclick="openBillingModal()">💳 Billing & API Key</button>
-      <button class="btn-success" onclick="publishCatalog()">🚀 Publish to Mobile App</button>
+      <button class="btn-secondary" onclick="openBillingModal()">💳 Billing</button>
+      <button class="btn-success" onclick="publishCatalog()">🚀 Publish to App</button>
     </div>
   </header>
 
   <main>
-    <div class="filters">
-      <div class="filter-group">
-        <label>Category:</label>
-        <select id="category-filter" onchange="loadVariants()">
-          <option value="">All Categories</option>
-        </select>
-        <label>Status:</label>
-        <select id="status-filter" onchange="loadVariants()">
-          <option value="all">All Variants</option>
-          <option value="pending" selected>Pending Review</option>
-          <option value="accepted">Accepted</option>
-          <option value="skipped">Skipped</option>
-        </select>
+    <!-- VIEW 1: CATALOG REVIEW -->
+    <div id="view-review">
+      <div class="filters">
+        <div class="filter-group">
+          <label>Category:</label>
+          <select id="category-filter" onchange="loadVariants()">
+            <option value="">All Categories</option>
+          </select>
+          <label>Status:</label>
+          <select id="status-filter" onchange="loadVariants()">
+            <option value="all">All Variants</option>
+            <option value="pending" selected>Pending Review</option>
+            <option value="accepted">Accepted</option>
+            <option value="skipped">Skipped</option>
+          </select>
+        </div>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <button class="btn-secondary btn-sm" onclick="toggleAllVariants(true)">⊞ Collapse All</button>
+          <button class="btn-secondary btn-sm" onclick="toggleAllVariants(false)">⊟ Expand All</button>
+          <button class="btn-secondary btn-sm" onclick="loadVariants()">🔄 Refresh</button>
+        </div>
       </div>
-      <div>
-        <button class="btn-secondary" onclick="loadVariants()">🔄 Refresh List</button>
+
+      <div id="variants-container">
+        Loading catalog...
       </div>
     </div>
 
-    <div id="variants-container">
-      Loading catalog...
+    <!-- VIEW 2: PROMPT PLAYGROUND -->
+    <div id="view-playground" style="display: none;">
+      <div class="playground-container">
+        <!-- Sidebar Controls -->
+        <div class="playground-sidebar">
+          <h2 style="margin: 0 0 1.2rem 0; font-size: 1.15rem; display: flex; align-items: center; gap: 0.5rem;">
+            🧪 Prompt Builder & Testing
+          </h2>
+
+          <div class="field-group">
+            <label>Style Preset:</label>
+            <select id="pg-preset" onchange="onPresetChange()" style="width: 100%;">
+              <option value="organic">Organic (Animals, Plants, Food, Characters)</option>
+              <option value="detail_prone">Detail-Prone (Vehicles, Buildings, Machines)</option>
+              <option value="ultra_simple">Ultra-Simple (Toddler / 3-6 Strokes)</option>
+              <option value="custom">Custom Configuration</option>
+            </select>
+            <div class="help-text" id="pg-preset-desc">Natural forms with friendly proportions and flat 2D perspective</div>
+          </div>
+
+          <div class="field-group">
+            <label>Subject / Drawing Concept:</label>
+            <input type="text" id="pg-subject" placeholder="e.g. bulldog puppy sitting down with head tilted" style="width: 100%;" value="bulldog puppy sitting down with head tilted" oninput="updateCompiledPreview()">
+            <div class="help-text">Describe the subject by shape, pose, and features. No color names.</div>
+          </div>
+
+          <div class="field-group">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
+              <label style="margin: 0;">Style Template:</label>
+              <button class="btn-secondary btn-sm" onclick="resetStylePrompt()">Reset</button>
+            </div>
+            <textarea id="pg-style" style="width: 100%; height: 75px; font-family: monospace; font-size: 0.75rem;" oninput="updateCompiledPreview()"></textarea>
+          </div>
+
+          <div class="field-group">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
+              <label style="margin: 0;">Negative Constraints:</label>
+              <button class="btn-secondary btn-sm" onclick="resetNegativePrompt()">Reset</button>
+            </div>
+            <textarea id="pg-negative" style="width: 100%; height: 65px; font-family: monospace; font-size: 0.75rem;" oninput="updateCompiledPreview()"></textarea>
+          </div>
+
+          <div class="field-group" style="background: #090d16; padding: 0.8rem; border-radius: 8px; border: 1px solid var(--border);">
+            <label style="font-size: 0.75rem; color: var(--text-sub);">Full Compiled Prompt:</label>
+            <div id="pg-compiled" style="font-family: monospace; font-size: 0.75rem; color: #38bdf8; word-break: break-word; max-height: 80px; overflow-y: auto;"></div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 100px; gap: 0.75rem; margin-bottom: 1.5rem;">
+            <div>
+              <label style="display: block; font-size: 0.8rem; margin-bottom: 0.3rem;">Model:</label>
+              <select id="pg-model" style="width: 100%;">
+                <option value="gemini-3.1-flash-lite-image" selected>⚡ Nano Banana 2 Lite ($0.034)</option>
+                <option value="gemini-3.1-flash-image">🎨 Nano Banana 2 ($0.067)</option>
+                <option value="imagen-4.0-fast-generate-001">🚀 Imagen 4 Fast ($0.020)</option>
+                <option value="gemini-3-pro-image">💎 Gemini 3 Pro ($0.134)</option>
+              </select>
+            </div>
+            <div>
+              <label style="display: block; font-size: 0.8rem; margin-bottom: 0.3rem;">Count:</label>
+              <select id="pg-count" style="width: 100%;">
+                <option value="1">1 image</option>
+                <option value="2">2 images</option>
+                <option value="4" selected>4 images</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+            <button class="btn-primary" id="btn-pg-generate" onclick="runPlaygroundGenerate()">
+              ⚡ Generate Candidates
+            </button>
+            <button class="btn-warning" id="btn-pg-tiers" onclick="runPlaygroundTiers()">
+              ✨ Generate 3 Difficulty Tiers (1 img each)
+            </button>
+            <button class="btn-secondary" id="btn-pg-compare" onclick="runPlaygroundCompare()">
+              🔬 Compare 3 Models (1 image each)
+            </button>
+          </div>
+        </div>
+
+        <!-- Output Grid -->
+        <div class="playground-results">
+          <div class="results-header">
+            <div>
+              <h3 style="margin: 0; font-size: 1.1rem;">Generated Sandbox Candidates</h3>
+              <span style="font-size: 0.75rem; color: var(--text-sub);" id="pg-status-text">Ready to generate</span>
+            </div>
+            <button class="btn-secondary btn-sm" onclick="clearPlaygroundResults()">Clear Results</button>
+          </div>
+
+          <div class="sandbox-grid" id="sandbox-grid">
+            <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 1rem; color: var(--text-sub);">
+              <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🧪</div>
+              Type a drawing concept on the left and click <strong>Generate Candidates</strong> or <strong>Compare 3 Models</strong>!
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
+
+  <!-- Prompt Inspect Modal -->
+  <div class="modal-overlay" id="inspect-modal" style="display: none;">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>🔍 Exact Generation Prompt</h3>
+        <button class="btn-secondary btn-sm" onclick="closeInspectModal()">✕</button>
+      </div>
+      <div style="margin-bottom: 1rem; font-size: 0.8rem; color: var(--text-sub);" id="inspect-model-name"></div>
+      <div style="background: #090d16; border: 1px solid var(--border); padding: 1rem; border-radius: 8px; font-family: monospace; font-size: 0.8rem; color: #38bdf8; max-height: 250px; overflow-y: auto; white-space: pre-wrap;" id="inspect-prompt-text"></div>
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.2rem;">
+        <button class="btn-secondary" onclick="copyInspectPrompt()">📋 Copy Prompt</button>
+        <button class="btn-primary" onclick="closeInspectModal()">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Promotion to Catalog Modal -->
+  <div class="modal-overlay" id="promote-modal" style="display: none;">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>➕ Add to Catalog as New Variant</h3>
+        <button class="btn-secondary btn-sm" onclick="closePromoteModal()">✕</button>
+      </div>
+      <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+        <img id="promote-preview-img" style="width: 100px; height: 100px; object-fit: contain; background: #fff; border-radius: 8px; border: 1px solid var(--border);" />
+        <div style="flex: 1;">
+          <div style="font-size: 0.8rem; color: var(--text-sub);">Target Placement:</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.4rem;">
+            <div>
+              <label style="font-size: 0.75rem; color: var(--text-sub);">Category:</label>
+              <select id="promote-category" style="width: 100%;" onchange="onPromoteCategoryChange()"></select>
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; color: var(--text-sub);">Subject:</label>
+              <select id="promote-subject" style="width: 100%;"></select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label>Variant Slug (URL-Safe):</label>
+        <input type="text" id="promote-slug" style="width: 100%;" placeholder="e.g. bulldog-puppy-sitting">
+      </div>
+
+      <div class="field-group">
+        <label>Human Description:</label>
+        <input type="text" id="promote-desc" style="width: 100%;" placeholder="e.g. Bulldog puppy sitting with head tilted">
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+        <button class="btn-secondary" onclick="closePromoteModal()">Cancel</button>
+        <button class="btn-success" id="btn-promote-confirm" onclick="confirmPromotion()">
+          ✓ Add & Accept to Catalog
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Billing Modal -->
   <div class="modal-overlay" id="billing-modal" style="display: none;">
     <div class="modal-box">
       <div class="modal-header">
         <h3>💳 Project Billing & API Key Status</h3>
-        <button class="btn-secondary" style="padding: 0.2rem 0.5rem;" onclick="closeBillingModal()">✕</button>
+        <button class="btn-secondary btn-sm" onclick="closeBillingModal()">✕</button>
       </div>
       <div id="billing-content">
         Loading billing details...
       </div>
       <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">
-        <a id="btn-aistudio-billing" href="https://aistudio.google.com/plan" target="_blank" style="text-decoration: none;">
+        <a href="https://aistudio.google.com/plan" target="_blank" style="text-decoration: none;">
           <button class="btn-primary">Google AI Studio Plan & Billing ↗</button>
         </a>
       </div>
     </div>
   </div>
 
-  <!-- Quota Error Modal -->
+  <!-- Quota Modal -->
   <div class="modal-overlay" id="quota-modal" style="display: none;">
     <div class="modal-box" style="border-color: var(--warning);">
       <div class="modal-header">
-        <h3 style="color: var(--warning);">⚠️ Google Gemini API Quota / Credit Alert</h3>
-        <button class="btn-secondary" style="padding: 0.2rem 0.5rem;" onclick="closeQuotaModal()">✕</button>
+        <h3 style="color: var(--warning);">⚠️ Google Gemini API Quota Alert</h3>
+        <button class="btn-secondary btn-sm" onclick="closeQuotaModal()">✕</button>
       </div>
       <p style="font-size: 0.9rem; color: var(--text-sub); line-height: 1.5;" id="quota-error-msg">
-        Your Google Gemini API key has reached its rate limit or depleted its available account credits.
+        Your Google Gemini API key has reached its rate limit or depleted credits.
       </p>
-      <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid var(--warning); padding: 1rem; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1.5rem;">
-        To fix this, check your account plan, top up credits, or check billing status in Google AI Studio.
-      </div>
-      <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+      <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">
         <button class="btn-secondary" onclick="closeQuotaModal()">Dismiss</button>
         <a href="https://aistudio.google.com/plan" target="_blank" style="text-decoration: none;">
           <button class="btn-warning">Top Up Credits on Google AI Studio ↗</button>
@@ -282,6 +635,40 @@
   </div>
 
   <script>
+    let currentPresets = [];
+    let categoriesHierarchy = [];
+    let activeInspectPrompt = '';
+    let pendingPromotionData = null;
+
+    function getModelBadge(modelId) {
+      if (!modelId) return '<span class="model-badge">Default</span>';
+      if (modelId.includes('lite')) return '<span class="model-badge lite">⚡ Lite</span>';
+      if (modelId.includes('flash-image')) return '<span class="model-badge standard">🎨 Standard</span>';
+      if (modelId.includes('imagen')) return '<span class="model-badge imagen">🚀 Imagen</span>';
+      if (modelId.includes('pro')) return '<span class="model-badge pro">💎 Pro</span>';
+      return `<span class="model-badge">${modelId.slice(0, 10)}</span>`;
+    }
+
+    function switchTab(tab) {
+      const reviewTabBtn = document.getElementById('tab-btn-review');
+      const pgTabBtn = document.getElementById('tab-btn-playground');
+      const reviewView = document.getElementById('view-review');
+      const pgView = document.getElementById('view-playground');
+
+      if (tab === 'review') {
+        reviewTabBtn.classList.add('active');
+        pgTabBtn.classList.remove('active');
+        reviewView.style.display = 'block';
+        pgView.style.display = 'none';
+        loadVariants();
+      } else {
+        pgTabBtn.classList.add('active');
+        reviewTabBtn.classList.remove('active');
+        pgView.style.display = 'block';
+        reviewView.style.display = 'none';
+      }
+    }
+
     async function fetchStats() {
       const res = await fetch('/api/stats');
       const data = await res.json();
@@ -289,54 +676,70 @@
         <span>Categories: <strong>${data.categories}</strong></span>
         <span>Subjects: <strong>${data.subjects}</strong></span>
         <span>Variants: <strong>${data.variants}</strong></span>
-        <span>Accepted Images: <strong style="color: var(--success);">${data.acceptedImages}</strong></span>
+        <span>Accepted: <strong style="color: var(--success);">${data.acceptedImages}</strong></span>
         <span>Published: <strong>${data.publishedImages}</strong></span>
-        <span>Total Project Spent: <strong style="color: var(--accent);">$${data.totalSpentUsd}</strong></span>
+        <span>Spent: <strong style="color: var(--accent);">$${data.totalSpentUsd}</strong></span>
       `;
     }
 
-    async function openBillingModal() {
-      document.getElementById('billing-modal').style.display = 'flex';
-      const res = await fetch('/api/billing');
-      const data = await res.json();
+    async function loadPresets() {
+      const res = await fetch('/api/presets');
+      currentPresets = await res.json();
+      onPresetChange();
+    }
+
+    function onPresetChange() {
+      const selectedId = document.getElementById('pg-preset').value;
+      const preset = currentPresets.find(p => p.id === selectedId);
+      if (preset) {
+        document.getElementById('pg-preset-desc').innerText = preset.description;
+        document.getElementById('pg-style').value = preset.stylePrompt;
+        document.getElementById('pg-negative').value = preset.negativeSuffix;
+        if (preset.exampleSubject && !document.getElementById('pg-subject').value) {
+          document.getElementById('pg-subject').value = preset.exampleSubject;
+        }
+      }
+      updateCompiledPreview();
+    }
+
+    function resetStylePrompt() {
+      const selectedId = document.getElementById('pg-preset').value;
+      const preset = currentPresets.find(p => p.id === selectedId) || currentPresets[0];
+      if (preset) {
+        document.getElementById('pg-style').value = preset.stylePrompt;
+        updateCompiledPreview();
+      }
+    }
+
+    function resetNegativePrompt() {
+      const selectedId = document.getElementById('pg-preset').value;
+      const preset = currentPresets.find(p => p.id === selectedId) || currentPresets[0];
+      if (preset) {
+        document.getElementById('pg-negative').value = preset.negativeSuffix;
+        updateCompiledPreview();
+      }
+    }
+
+    function updateCompiledPreview() {
+      const subject = document.getElementById('pg-subject').value.trim();
+      const style = document.getElementById('pg-style').value.trim();
+      const negative = document.getElementById('pg-negative').value.trim();
       
-      document.getElementById('billing-content').innerHTML = `
-        <div style="margin-bottom: 1rem; font-size: 0.85rem; color: var(--text-sub);">
-          API Key: <strong style="color: #fff;">${data.maskedKey}</strong> | Status: <strong style="color: var(--success);">Active</strong>
-        </div>
-        <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--accent);">
-          Total Project Spent: $${data.totalSpentUsd} USD
-        </div>
-        <table class="modal-table">
-          <thead>
-            <tr><th>Model</th><th>Runs</th><th>Images</th><th>Cost (USD)</th></tr>
-          </thead>
-          <tbody>
-            ${data.breakdown.map(b => `
-              <tr>
-                <td><code>${b.modelId}</code></td>
-                <td>${b.runCount}</td>
-                <td>${b.totalImages}</td>
-                <td>$${b.totalCostUsd}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-        <p style="font-size: 0.75rem; color: var(--text-sub);">
-          * Costs are precisely calculated based on official model pricing logged in SQLite per generation run.
-        </p>
-      `;
+      const subjectFormatted = subject.startsWith('A single') ? subject : `A single ${subject}`;
+      const compiled = `${subjectFormatted}, ${style}. ${negative}`;
+      document.getElementById('pg-compiled').innerText = compiled;
+      return compiled;
     }
 
-    function closeBillingModal() { document.getElementById('billing-modal').style.display = 'none'; }
-    function closeQuotaModal() { document.getElementById('quota-modal').style.display = 'none'; }
+    async function loadCategoriesHierarchy() {
+      const res = await fetch('/api/categories-subjects');
+      categoriesHierarchy = await res.json();
+    }
 
     async function loadCategories() {
-      const res = await fetch('/api/variants');
-      const data = await res.json();
-      const categories = [...new Set(data.map(v => v.category))];
+      await loadCategoriesHierarchy();
       const select = document.getElementById('category-filter');
-      select.innerHTML = '<option value="">All Categories</option>' + categories.map(c => `<option value="${c}">${c}</option>`).join('');
+      select.innerHTML = '<option value="">All Categories</option>' + categoriesHierarchy.map(c => `<option value="${c.slug}">${c.name}</option>`).join('');
     }
 
     async function loadVariants() {
@@ -352,76 +755,173 @@
         return;
       }
 
-      container.innerHTML = variants.map(v => `
+      container.innerHTML = variants.map(v => {
+        const visibleImages = v.images.filter(img => img.status !== 'rejected');
+        const pendingImages = v.images.filter(img => img.status === 'pending');
+        const acceptedImages = v.images.filter(img => img.status === 'accepted');
+        const rejectedCount = v.images.filter(img => img.status === 'rejected').length;
+
+        return `
         <div class="variant-card" id="variant-${v.variantId}">
           <div class="variant-header">
-            <div class="variant-title">
-              <h2>${v.categoryName} / ${v.subjectName} — ${v.description}</h2>
-              <div class="variant-meta">Key: <code>${v.key}</code> | Candidates: ${v.images.length}</div>
-            </div>
-            <div>
-              <button class="btn-danger" onclick="skipVariant(${v.variantId})">Skip Variant</button>
-            </div>
-          </div>
-
-          <div class="prompt-box">
-            <label style="font-size: 0.75rem; color: var(--text-sub); display: block; margin-bottom: 0.3rem;">Image Generation Prompt:</label>
-            <textarea id="prompt-${v.variantId}">${v.prompt}</textarea>
-            <div class="prompt-actions">
-              <button class="btn-secondary" onclick="updatePrompt(${v.variantId})">Save Prompt Override</button>
-            </div>
-          </div>
-
-          <div class="images-grid">
-            ${v.images.map(img => `
-              <div class="image-card ${img.status}" id="img-card-${img.imageId}">
-                <img src="${img.url}" alt="${v.description}" />
-                ${img.imageDescription ? `<div style="padding: 0.5rem 0.75rem 0 0.75rem; font-size: 0.8rem; color: #38bdf8; font-style: italic;">"${img.imageDescription}"</div>` : ''}
-                <div class="image-controls">
-                  <button class="${img.status === 'accepted' ? 'btn-success' : 'btn-secondary'}" onclick="toggleImageStatus(${img.imageId}, '${img.status === 'accepted' ? 'pending' : 'accepted'}')">
-                    ${img.status === 'accepted' ? '✓ Accepted' : 'Accept Image'}
-                  </button>
-                  <button class="btn-danger" onclick="toggleImageStatus(${img.imageId}, 'rejected')">Reject</button>
+            <div class="variant-title" onclick="toggleVariantCollapse(${v.variantId})">
+              <button class="collapse-btn" id="collapse-btn-${v.variantId}" onclick="event.stopPropagation(); toggleVariantCollapse(${v.variantId})">▾</button>
+              <div>
+                <h2>${v.categoryName} / ${v.subjectName} — ${v.description}</h2>
+                <div class="variant-meta">
+                  Key: <code>${v.key}</code> | 
+                  Candidates: ${visibleImages.length} 
+                  ${acceptedImages.length ? `<span style="color: var(--success); font-weight: 600;">(${acceptedImages.length} accepted)</span>` : ''}
+                  ${rejectedCount ? `<span style="color: var(--text-sub); font-size: 0.75rem;">(${rejectedCount} rejected hidden)</span>` : ''}
                 </div>
-                ${img.difficulty ? `<div style="padding: 0 0.75rem; font-size: 0.75rem; color: var(--text-sub);">Difficulty: Level ${img.difficulty}</div>` : ''}
-                ${img.tags.length ? `<div style="padding: 0.5rem 0.75rem;"><div class="tag-pills">${img.tags.map(t => `<span class="tag-pill">${t}</span>`).join('')}</div></div>` : ''}
               </div>
-            `).join('')}
+            </div>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              ${pendingImages.length > 0 ? `<button class="btn-secondary btn-sm" onclick="dismissUnaccepted(${v.variantId})">🗑️ Dismiss Unaccepted (${pendingImages.length})</button>` : ''}
+              <button class="btn-danger btn-sm" onclick="skipVariant(${v.variantId})">Skip Variant</button>
+            </div>
           </div>
 
-          <div class="retry-bar">
-            <label style="font-size: 0.85rem;">Generate Candidates:</label>
-            <select id="model-${v.variantId}">
-              <option value="gemini-3.1-flash-lite-image" selected>⚡ Nano Banana 2 Lite ($0.034/img)</option>
-              <option value="gemini-3.1-flash-image">🎨 Nano Banana 2 ($0.067/img)</option>
-              <option value="imagen-4.0-fast-generate-001">🚀 Imagen 4 Fast ($0.020/img)</option>
-            </select>
-            <input type="text" id="feedback-${v.variantId}" placeholder="Feedback (e.g. thicker lines, no background)..." value="${v.feedback || ''}">
-            <button class="btn-primary" onclick="regenerateVariant(${v.variantId})">⚡ Generate Candidates Now</button>
+          <div class="variant-body">
+            <div class="prompt-box">
+              <label style="font-size: 0.75rem; color: var(--text-sub); display: block; margin-bottom: 0.3rem;">Image Generation Prompt:</label>
+              <textarea id="prompt-${v.variantId}">${v.prompt}</textarea>
+              <div class="prompt-actions">
+                <button class="btn-secondary" onclick="updatePrompt(${v.variantId}, this)">Save Prompt Override</button>
+              </div>
+            </div>
+
+            <div class="images-grid" id="grid-${v.variantId}">
+              ${visibleImages.map(img => `
+                <div class="image-card ${img.status}" id="img-card-${img.imageId}">
+                  <div class="image-header-bar">
+                    ${getModelBadge(img.modelId)}
+                    <button class="info-btn" title="Inspect Prompt" onclick="inspectPrompt('${escapeHtml(img.promptUsed || v.prompt)}', '${img.modelId || 'Unknown'}')">ℹ</button>
+                  </div>
+                  <img src="${img.url}" alt="${v.description}" />
+                  ${img.imageDescription ? `<div style="padding: 0.5rem 0.75rem 0 0.75rem; font-size: 0.8rem; color: #38bdf8; font-style: italic;">"${img.imageDescription}"</div>` : ''}
+                  <div class="image-controls">
+                    <button class="${img.status === 'accepted' ? 'btn-success' : 'btn-secondary'}" onclick="toggleImageStatus(${img.imageId}, '${img.status === 'accepted' ? 'pending' : 'accepted'}')">
+                      ${img.status === 'accepted' ? '✓ Accepted' : 'Accept Image'}
+                    </button>
+                    <button class="btn-danger" onclick="toggleImageStatus(${img.imageId}, 'rejected')">Reject ✕</button>
+                  </div>
+                  ${img.difficulty ? `<div style="padding: 0 0.75rem; font-size: 0.75rem; color: var(--text-sub);">Difficulty: Level ${img.difficulty}</div>` : ''}
+                  ${img.tags.length ? `<div style="padding: 0.5rem 0.75rem;"><div class="tag-pills">${img.tags.map(t => `<span class="tag-pill">${t}</span>`).join('')}</div></div>` : ''}
+                </div>
+              `).join('')}
+            </div>
+
+            <div class="retry-bar">
+              <label style="font-size: 0.85rem;">Generate Candidates:</label>
+              <select id="model-${v.variantId}">
+                <option value="gemini-3.1-flash-lite-image" selected>⚡ Nano Banana 2 Lite ($0.034/img)</option>
+                <option value="gemini-3.1-flash-image">🎨 Nano Banana 2 ($0.067/img)</option>
+                <option value="imagen-4.0-fast-generate-001">🚀 Imagen 4 Fast ($0.020/img)</option>
+              </select>
+              <input type="text" id="feedback-${v.variantId}" placeholder="Feedback (e.g. thicker lines, flat side view)..." value="${v.feedback || ''}">
+              <button class="btn-primary" onclick="regenerateVariant(${v.variantId})">⚡ Generate Candidates Now</button>
+            </div>
           </div>
         </div>
-      `).join('');
+        `;
+      }).join('');
 
       fetchStats();
     }
 
+    function toggleVariantCollapse(variantId) {
+      const card = document.getElementById(`variant-${variantId}`);
+      const btn = document.getElementById(`collapse-btn-${variantId}`);
+      if (!card) return;
+      card.classList.toggle('collapsed');
+      if (btn) {
+        btn.innerText = card.classList.contains('collapsed') ? '▸' : '▾';
+      }
+    }
+
+    function toggleAllVariants(collapsed) {
+      const cards = document.querySelectorAll('.variant-card');
+      cards.forEach(card => {
+        const id = card.id.replace('variant-', '');
+        const btn = document.getElementById(`collapse-btn-${id}`);
+        if (collapsed) {
+          card.classList.add('collapsed');
+          if (btn) btn.innerText = '▸';
+        } else {
+          card.classList.remove('collapsed');
+          if (btn) btn.innerText = '▾';
+        }
+      });
+    }
+
     async function toggleImageStatus(imageId, status) {
+      const card = document.getElementById(`img-card-${imageId}`);
+      if (status === 'rejected' && card) {
+        card.classList.add('fade-out');
+        setTimeout(() => {
+          if (card) card.remove();
+        }, 220);
+      }
       await fetch('/api/image-status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ imageId, status })
       });
-      loadVariants();
+      if (status !== 'rejected') {
+        loadVariants();
+      } else {
+        fetchStats();
+      }
     }
 
-    async function updatePrompt(variantId) {
-      const prompt = document.getElementById(`prompt-${variantId}`).value;
-      await fetch('/api/update-prompt', {
+    async function dismissUnaccepted(variantId) {
+      const grid = document.getElementById(`grid-${variantId}`);
+      if (grid) {
+        const cards = grid.querySelectorAll('.image-card:not(.accepted)');
+        cards.forEach(c => c.classList.add('fade-out'));
+      }
+      await fetch('/api/dismiss-unaccepted', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ variantId, customPrompt: prompt })
+        body: JSON.stringify({ variantId })
       });
-      alert('Prompt override saved!');
+      setTimeout(() => {
+        loadVariants();
+      }, 220);
+    }
+
+    async function updatePrompt(variantId, btn) {
+      const targetBtn = btn || (typeof event !== 'undefined' ? event.target : null);
+      const prompt = document.getElementById(`prompt-${variantId}`).value;
+      if (targetBtn) {
+        targetBtn.innerText = 'Saving...';
+        targetBtn.disabled = true;
+      }
+      try {
+        await fetch('/api/update-prompt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ variantId, customPrompt: prompt })
+        });
+        if (targetBtn) {
+          targetBtn.innerText = '✓ Saved!';
+          targetBtn.classList.remove('btn-secondary');
+          targetBtn.classList.add('btn-success');
+          setTimeout(() => {
+            targetBtn.innerText = 'Save Prompt Override';
+            targetBtn.classList.remove('btn-success');
+            targetBtn.classList.add('btn-secondary');
+            targetBtn.disabled = false;
+          }, 1500);
+        }
+      } catch (err) {
+        if (targetBtn) {
+          targetBtn.innerText = 'Save Prompt Override';
+          targetBtn.disabled = false;
+        }
+        console.error('Error saving prompt override:', err);
+      }
     }
 
     async function regenerateVariant(variantId) {
@@ -479,8 +979,325 @@
       }
     }
 
+    /* Playground Functions */
+    async function runPlaygroundGenerate() {
+      const prompt = updateCompiledPreview();
+      const modelId = document.getElementById('pg-model').value;
+      const count = parseInt(document.getElementById('pg-count').value, 10);
+      const btn = document.getElementById('btn-pg-generate');
+      
+      btn.innerText = '⏳ Generating...';
+      btn.disabled = true;
+      document.getElementById('pg-status-text').innerText = `Generating ${count} image(s) with ${modelId}...`;
+
+      try {
+        const res = await fetch('/api/playground/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt, modelId, count })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          renderPlaygroundResults(data.images.map(img => ({
+            base64: img.base64,
+            dataUrl: img.dataUrl,
+            modelId: data.modelId,
+            modelName: data.modelId,
+            cost: data.costPerImg,
+            latencyMs: Math.round(data.latencyMs / data.images.length),
+            prompt: data.prompt
+          })));
+          document.getElementById('pg-status-text').innerText = `Generated ${data.images.length} images in ${(data.latencyMs/1000).toFixed(1)}s ($${data.totalCost.toFixed(3)})`;
+        } else {
+          alert('Generation Error: ' + data.error);
+          document.getElementById('pg-status-text').innerText = 'Generation failed';
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+      } finally {
+        btn.innerText = '⚡ Generate Candidates';
+        btn.disabled = false;
+        fetchStats();
+      }
+    }
+
+    async function runPlaygroundCompare() {
+      const prompt = updateCompiledPreview();
+      const btn = document.getElementById('btn-pg-compare');
+      btn.innerText = '⏳ Comparing 3 Models...';
+      btn.disabled = true;
+      document.getElementById('pg-status-text').innerText = 'Generating 1 image on Lite, Standard, and Imagen...';
+
+      try {
+        const res = await fetch('/api/playground/compare', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          const items = data.results.map(r => ({
+            base64: r.image ? r.image.base64 : null,
+            dataUrl: r.image ? r.image.dataUrl : null,
+            modelId: r.modelId,
+            modelName: r.modelName,
+            cost: r.cost,
+            latencyMs: r.latencyMs,
+            error: r.error,
+            prompt: data.prompt
+          }));
+          renderPlaygroundResults(items);
+          document.getElementById('pg-status-text').innerText = 'Multi-model comparison complete';
+        } else {
+          alert('Comparison error: ' + data.error);
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+      } finally {
+        btn.innerText = '🔬 Compare 3 Models (1 image each)';
+        btn.disabled = false;
+        fetchStats();
+      }
+    }
+
+    async function runPlaygroundTiers() {
+      const subject = document.getElementById('pg-subject').value.trim();
+      if (!subject) {
+        alert('Please enter a subject concept first');
+        return;
+      }
+      const modelId = document.getElementById('pg-model').value;
+      const btn = document.getElementById('btn-pg-tiers');
+      btn.innerText = '⏳ Generating 3 Tiers...';
+      btn.disabled = true;
+      document.getElementById('pg-status-text').innerText = `Generating Level 1, 2, and 3 tiers for "${subject}"...`;
+
+      try {
+        const res = await fetch('/api/playground/generate-tiers', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ subject, modelId })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          const totalCost = data.results.reduce((s, r) => s + (r.cost || 0), 0);
+          const items = data.results.map(r => ({
+            base64: r.image ? r.image.base64 : null,
+            dataUrl: r.image ? r.image.dataUrl : null,
+            modelId: r.modelId,
+            modelName: r.levelBadge,
+            cost: r.cost,
+            latencyMs: r.latencyMs,
+            error: r.error,
+            prompt: r.prompt,
+            suggestedSlugSuffix: r.suffixSlug,
+            levelBadge: r.levelBadge
+          }));
+          renderPlaygroundResults(items);
+          document.getElementById('pg-status-text').innerText = `Generated 3 Difficulty Tiers for "${subject}" ($${totalCost.toFixed(3)})`;
+        } else {
+          alert('Tiers error: ' + data.error);
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+      } finally {
+        btn.innerText = '✨ Generate 3 Difficulty Tiers (1 img each)';
+        btn.disabled = false;
+        fetchStats();
+      }
+    }
+
+    function renderPlaygroundResults(items) {
+      const grid = document.getElementById('sandbox-grid');
+      grid.innerHTML = items.map((item, idx) => {
+        if (item.error) {
+          return `
+            <div class="sandbox-card" style="border-color: var(--danger);">
+              <div style="padding: 2rem 1rem; text-align: center; color: var(--danger);">
+                <div>${item.modelName || item.modelId}</div>
+                <div style="font-size: 0.8rem; margin-top: 0.5rem;">Error: ${item.error}</div>
+              </div>
+            </div>
+          `;
+        }
+        return `
+          <div class="sandbox-card">
+            <div style="position: relative;">
+              <img src="${item.dataUrl}" alt="Sandbox Image" />
+              <div class="image-header-bar">
+                ${item.levelBadge ? `<span class="model-badge" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b; border-color: rgba(245, 158, 11, 0.4);">${item.levelBadge}</span>` : getModelBadge(item.modelId)}
+                <button class="info-btn" title="Inspect Prompt" onclick="inspectPrompt('${escapeHtml(item.prompt)}', '${item.modelId}')">ℹ</button>
+              </div>
+            </div>
+            <div class="sandbox-card-body">
+              <div class="sandbox-meta">
+                <span>⏱️ ${(item.latencyMs/1000).toFixed(1)}s</span>
+                <span style="color: var(--accent); font-weight: 600;">$${Number(item.cost).toFixed(3)}</span>
+              </div>
+              <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                <button class="btn-success btn-sm" style="flex: 1;" onclick="openPromoteModal('${item.base64}', '${item.modelId}', '${escapeHtml(item.prompt)}', '${item.suggestedSlugSuffix || ''}')">
+                  ➕ Add as New Variant
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function clearPlaygroundResults() {
+      document.getElementById('sandbox-grid').innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 1rem; color: var(--text-sub);">
+          <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🧪</div>
+          Type a drawing concept on the left and click <strong>Generate Candidates</strong>, <strong>Generate 3 Difficulty Tiers</strong>, or <strong>Compare 3 Models</strong>!
+        </div>
+      `;
+      document.getElementById('pg-status-text').innerText = 'Ready to generate';
+    }
+
+    /* Prompt Inspection */
+    function inspectPrompt(promptText, modelName) {
+      activeInspectPrompt = promptText;
+      document.getElementById('inspect-model-name').innerText = `Model: ${modelName}`;
+      document.getElementById('inspect-prompt-text').innerText = promptText;
+      document.getElementById('inspect-modal').style.display = 'flex';
+    }
+    function closeInspectModal() { document.getElementById('inspect-modal').style.display = 'none'; }
+    function copyInspectPrompt() {
+      navigator.clipboard.writeText(activeInspectPrompt);
+      alert('Prompt copied to clipboard!');
+    }
+
+    /* Promotion Flow */
+    function openPromoteModal(base64, modelId, prompt, suggestedSuffix = '') {
+      pendingPromotionData = { base64, modelId, prompt };
+      document.getElementById('promote-preview-img').src = `data:image/png;base64,${base64}`;
+      
+      const catSelect = document.getElementById('promote-category');
+      catSelect.innerHTML = categoriesHierarchy.map(c => `<option value="${c.slug}">${c.name}</option>`).join('');
+      onPromoteCategoryChange();
+
+      const subjectInput = document.getElementById('pg-subject').value.trim();
+      let baseSlug = subjectInput.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'new-variant';
+      if (suggestedSuffix && !baseSlug.endsWith(suggestedSuffix)) {
+        baseSlug = `${baseSlug}-${suggestedSuffix}`;
+      }
+      document.getElementById('promote-slug').value = baseSlug;
+      document.getElementById('promote-desc').value = subjectInput || 'New variant';
+
+      document.getElementById('promote-modal').style.display = 'flex';
+    }
+
+    function onPromoteCategoryChange() {
+      const catSlug = document.getElementById('promote-category').value;
+      const cat = categoriesHierarchy.find(c => c.slug === catSlug);
+      const subSelect = document.getElementById('promote-subject');
+      if (cat && cat.subjects.length > 0) {
+        subSelect.innerHTML = cat.subjects.map(s => `<option value="${s.slug}">${s.name}</option>`).join('');
+      } else {
+        subSelect.innerHTML = '<option value="general">General</option>';
+      }
+    }
+
+    function closePromoteModal() { document.getElementById('promote-modal').style.display = 'none'; }
+
+    async function confirmPromotion() {
+      if (!pendingPromotionData) return;
+      const categorySlug = document.getElementById('promote-category').value;
+      const subjectSlug = document.getElementById('promote-subject').value;
+      const variantSlug = document.getElementById('promote-slug').value.trim();
+      const description = document.getElementById('promote-desc').value.trim();
+
+      if (!variantSlug) {
+        alert('Please specify a variant slug');
+        return;
+      }
+
+      const btn = document.getElementById('btn-promote-confirm');
+      btn.innerText = 'Saving...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/playground/promote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            categorySlug,
+            subjectSlug,
+            variantSlug,
+            description,
+            prompt: pendingPromotionData.prompt,
+            imageBase64: pendingPromotionData.base64,
+            modelId: pendingPromotionData.modelId
+          })
+        });
+        
+        let data;
+        try {
+          data = await res.json();
+        } catch {
+          const errText = await res.text();
+          throw new Error(`Server error (${res.status}): ${errText.slice(0, 120)}`);
+        }
+
+        if (data.ok) {
+          alert(`Successfully added variant "${variantSlug}" to catalog!`);
+          closePromoteModal();
+          fetchStats();
+        } else {
+          alert('Promotion Error: ' + (data.error || 'Unknown error'));
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+      } finally {
+        btn.innerText = '✓ Add & Accept to Catalog';
+        btn.disabled = false;
+      }
+    }
+
+    /* Billing & Quota */
+    async function openBillingModal() {
+      document.getElementById('billing-modal').style.display = 'flex';
+      const res = await fetch('/api/billing');
+      const data = await res.json();
+      
+      document.getElementById('billing-content').innerHTML = `
+        <div style="margin-bottom: 1rem; font-size: 0.85rem; color: var(--text-sub);">
+          API Key: <strong style="color: #fff;">${data.maskedKey}</strong> | Status: <strong style="color: var(--success);">Active</strong>
+        </div>
+        <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--accent);">
+          Total Project Spent: $${data.totalSpentUsd} USD
+        </div>
+        <table class="modal-table">
+          <thead>
+            <tr><th>Model</th><th>Runs</th><th>Images</th><th>Cost (USD)</th></tr>
+          </thead>
+          <tbody>
+            ${data.breakdown.map(b => `
+              <tr>
+                <td><code>${b.modelId}</code></td>
+                <td>${b.runCount}</td>
+                <td>${b.totalImages}</td>
+                <td>$${b.totalCostUsd}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+    function closeBillingModal() { document.getElementById('billing-modal').style.display = 'none'; }
+    function closeQuotaModal() { document.getElementById('quota-modal').style.display = 'none'; }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    // Init
+    loadPresets();
     loadCategories();
     loadVariants();
   </script>
 </body>
 </html>
+

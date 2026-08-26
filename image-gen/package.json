@@ -5,7 +5,7 @@
   "scripts": {
     "expand": "node --env-file=.env cli.js expand",
     "generate": "node --env-file=.env cli.js generate",
-    "review": "node --env-file=.env cli.js review",
+    "review": "node --env-file=.env --watch cli.js review",
     "review:stop": "kill $(lsof -ti:3456) 2>/dev/null && echo 'Stopped' || echo 'Not running'",
     "tag": "node --env-file=.env cli.js tag",
     "publish": "node --env-file=.env cli.js publish",

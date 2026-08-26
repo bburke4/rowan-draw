@@ -88,10 +88,41 @@ export function getDb() {
       CREATE INDEX IF NOT EXISTS idx_images_status ON images(status);
     `);
 
-    // Ensure image_description column exists if database was created prior
-    try {
-      _db.exec("ALTER TABLE images ADD COLUMN image_description TEXT;");
-    } catch {}
+    // Auto-seed categories and subjects from catalog.json if categories table is empty
+    const catCount = _db.prepare("SELECT COUNT(*) AS c FROM categories").get().c;
+    if (catCount === 0) {
+      syncCatalog(_db);
+    }
   }
   return _db;
 }
+
+export function syncCatalog(db) {
+  const catalogPath = path.join(import.meta.dirname, "..", "catalog.json");
+  if (!fs.existsSync(catalogPath)) return;
+  try {
+    const catalog = JSON.parse(fs.readFileSync(catalogPath, "utf8"));
+    const catStmt = db.prepare("INSERT OR IGNORE INTO categories (slug, name, sort_order) VALUES (?, ?, ?)");
+    const subStmt = db.prepare("INSERT OR IGNORE INTO subjects (category_id, slug, name, subject_type, sort_order) VALUES (?, ?, ?, ?, ?)");
+    const getCatIdStmt = db.prepare("SELECT id FROM categories WHERE slug = ?");
+
+    let catIdx = 1;
+    for (const [catSlug, catData] of Object.entries(catalog.categories || {})) {
+      const catName = catSlug.charAt(0).toUpperCase() + catSlug.slice(1);
+      catStmt.run(catSlug, catName, catIdx++);
+      const catRow = getCatIdStmt.get(catSlug);
+      if (!catRow) continue;
+
+      let subIdx = 1;
+      for (const subSlug of catData.subjects || []) {
+        const subName = subSlug.charAt(0).toUpperCase() + subSlug.slice(1);
+        const isDetailProne = ["vehicles", "buildings"].includes(catSlug);
+        const subjectType = isDetailProne ? "DETAIL-PRONE" : "ORGANIC";
+        subStmt.run(catRow.id, subSlug, subName, subjectType, subIdx++);
+      }
+    }
+  } catch (err) {
+    console.warn("Could not sync catalog.json:", err.message);
+  }
+}
+

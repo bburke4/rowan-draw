@@ -23,11 +23,13 @@ export async function runPublish(flags) {
       i.tags_json,
       v.slug AS variant_slug,
       v.description AS variant_description,
-      COALESCE(v.custom_prompt, v.base_prompt) AS prompt,
+      COALESCE(r.prompt_used, v.custom_prompt, v.base_prompt) AS prompt,
+      r.model_id,
       s.slug AS subject_slug,
       c.slug AS category_slug
     FROM images i
     JOIN variants v ON i.variant_id = v.id
+    LEFT JOIN generation_runs r ON i.generation_run_id = r.id
     JOIN subjects s ON v.subject_id = s.id
     JOIN categories c ON s.category_id = c.id
     WHERE i.status = 'accepted' AND i.difficulty_score IS NOT NULL AND i.tags_json IS NOT NULL AND i.is_published = 0
@@ -94,13 +96,14 @@ export async function runPublish(flags) {
       description: img.image_description || img.variant_description,
       tags: tagsArr,
       difficulty: img.difficulty_score,
-      added: new Date().toISOString().slice(0, 10),
+      model: img.model_id || "gemini-3.1-flash-lite-image",
       prompt: img.prompt,
+      added: new Date().toISOString().slice(0, 10),
       sourceFile: img.file_path,
     };
 
     markPublishedStmt.run(libraryRelPath, img.image_id);
-    console.log(`  Published ${img.public_id} → ${webLibraryFullPath}`);
+    console.log(`  Published ${img.public_id} (${img.model_id || "default"}) → ${webLibraryFullPath}`);
     published++;
   }
 

@@ -121,7 +121,7 @@ export async function runGenerate(flags) {
 
     let prompt = v.custom_prompt || v.base_prompt;
     if (v.feedback_history) {
-      prompt += ` Avoid previous issue: ${v.feedback_history}.`;
+      prompt = `CRITICAL CORRECTION: Avoid previous issue - ${v.feedback_history}. ${prompt}`;
     }
 
     console.log(`[${processed + 1}/${toProcess.length}] Generating: ${genKey} (${selectedModel})`);

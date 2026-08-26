@@ -1,0 +1,15 @@
+{
+  "name": "rowan-draw",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix web run dev",
+    "build": "npm --prefix web run build",
+    "review": "npm --prefix image-gen run review",
+    "expand": "npm --prefix image-gen run expand --",
+    "generate": "npm --prefix image-gen run generate --",
+    "tag": "npm --prefix image-gen run tag",
+    "publish": "npm --prefix image-gen run publish",
+    "status": "npm --prefix image-gen run status"
+  }
+}
